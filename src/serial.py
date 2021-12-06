@@ -378,12 +378,60 @@ class DataLogger:
             exit(0)
 
 
-def main(p: int, limit: int, timeout: float):
-    datalogger = DataLogger(timeout=timeout)
+def save_to_csv(buffer: list, filename: str):
+    # write the data for this trace to dis
 
+    with open(filename, "w") as f:
+        writer = csv.writer(f, delimiter=",")
+        writer.writerow(["cnt", "time_us", "acq_time", "data"])
+
+        for string in buffer:
+            row = string.split(",")
+            writer.writerow(row)
+    f.close()
+
+
+def main(limit: int, suffix: str, t: str):
+    logging.basicConfig(level=logging.DEBUG)
+    finished = False
+    capture_limit = limit
+    ignored_data = ["", "/n", "/r"]
+    buffer = ""
+    recv = ""
+    datalogger = DataLogger(timeout=0.1)
+
+    # flush input buffer
+    datalogger.adc.flushInput()
+    # sleep(0.25)
+
+    # send command to change capture limit
+    datalogger.send_command("l", capture_limit)
+    # print(f"capture_limit: {capture_limit}")
+    # sleep(0.25)
+
+    # send trigger
+    datalogger.send_command("t", 0)
+    print("triggered")
+    # sleep(0.5)
+    # recv = datalogger.adc.read_until().decode("utf-8")
+    # print(f"recv: {recv}")
+
+    # # check ready state
+    # datalogger.send_command("r", 0)
+    # sleep(1)
+    # recv = datalogger.adc.read_until().decode("utf-8")
+    # print(f"recv: {recv}")
+
+    # read data from device
+    start_time = time.process_time()
     while True:
-        cmd_input = datalogger.get_user_input()
-        datalogger.process_user_input(cmd_input, capture_limit=limit)
+        recv = datalogger.adc.read_until().decode()
+        if ";" in recv:
+            break
+        buffer += recv
+
+    save_to_csv(buffer.split("\r\n"), f"{capture_limit}_{t}us_{suffix}.csv")
+    print(f"done, {time.process_time() - start_time}")
 
 
 if __name__ == "__main__":
@@ -394,15 +442,15 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-p", help="placeholder", type=int, default=0,
-    )
-
-    parser.add_argument(
         "-limit", help="capture_limit", type=int, default=250,
     )
 
     parser.add_argument(
-        "-timeout", help="timeout", type=float, default=2.0,
+        "-t", help="time_us", type=str, default="250",
+    )
+
+    parser.add_argument(
+        "-suffix", help="suffix", type=str, default="0",
     )
 
     args = parser.parse_args()
