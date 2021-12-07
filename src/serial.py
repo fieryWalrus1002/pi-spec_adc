@@ -59,9 +59,6 @@ class DataLogger:
     def close_connection(self):
         self.adc.close()
 
-    def flush_buffer(self):
-        self.adc.reset_input_buffer()
-
     def send_command(self, cmd_input, value):
         cmd_output = cmd_input + str(value) + ";"
         self.adc.write(cmd_output.encode("utf-8"))
@@ -88,109 +85,7 @@ class DataLogger:
         print("change_adc_channel not a valid command")
         pass
 
-    def get_data_old(self, num_points, test=0, **kwargs):
-        packet_size = kwargs.get(
-            "packet_size", 500
-        )  # either use this many points or whatever is specified in kwargs
-
-        # get the data between 0 and num_points in a number of packets equal to the class variable packet_size
-
-        # wait for the ADC to be ready to send over data
-        data = []
-        resp = ""
-        i = 0
-
-        while (resp == "") and (i < 10):
-            time.sleep(0.25)
-            resp = self.listen_for_response()
-
-        print("Data ready for retrieval: %s ." % resp)
-
-        # measure how much time it takes to get the data back
-        begin = datetime.now()
-
-        # how many packets are we requesting? round up to the next integer
-        total_packets = math.ceil(num_points / packet_size)
-
-        # for each packet we get, add it to the packet_list
-        packet_list = []
-
-        # get data for each packet
-        for packet in range(0, total_packets):
-            # send get data command
-            self.send_command("g", packet_size)
-
-            # receive the data
-            packet_list.append(self.adc.read_until(";").decode("utf-8").split("\r"))
-
-        # how long did it take?
-        time_elapsed = datetime.now() - begin
-        print("time elapsed: %f " % time_elapsed)
-
-        # combine all the data from packets to a data file
-        for packet in packet_list:
-            for row in packet:
-                data.append(row)
-
-        print("recv data, length: %i, expected: %i" % len(data), num_points)
-
-        return data
-
-    def parse_raw(raw):
-        """parse bytes output from Arduino"""
-        raw = raw.decode()
-        if raw[-1] != "\n":
-            raise ValueError(
-                "Input must end with newline, otherwise message is incomplete"
-            )
-
-        t, V = raw.rstrip().split(",")
-
-        return int(t), int(V) * 3.3 / 4095
-
-    # def read_all(
-    #     self, read_buffer=b"",
-    # ):
-    #     """ read all available bytes from the serial port and append to read buffer"""
-
-    #     previous_timeout = self.adc.timeout
-    #     self.adc.timeout = None
-
-    #     in_waiting = self.adc.in_waiting
-    #     read = self.adc.read(size=in_waiting)
-
-    #     self.adc.timeout = previous_timeout
-
-    #     return read_buffer + read
-
-    # def get_data(self, num_points: int = 10, test: int = 0):
-    #     buffer = b""
-
-    #     self.send_command("g", num_points)
-
-    #     buffer = self.read_all(read_buffer=buffer)
-
-    #     logging.debug("buffer read")
-    #     return buffer
-
-    def get_data(self, num_points: int = 10, test: int = 0):
-        data = []
-
-        self.send_command("g", num_points)
-
-        for _ in range(num_points):
-
-            raw = self.adc.read_until(";",).decode("utf-8")
-            data.append(raw)
-            # try:
-            #     t, V = parse_raw(raw)
-            #     point[i] = t
-            #     voltage[i] = V
-            # except:
-            #     pass
-
-        return data
-
+    
     def save_data_to_csv(self, trace_data, trace_params, trace_num):
         wl = str(trace_params.meas_led_vis) + str(trace_params.meas_led_ir)
         trace_date = time.strftime("%d%m%y")
@@ -390,15 +285,25 @@ def save_to_csv(buffer: list, filename: str):
             writer.writerow(row)
     f.close()
 
+def timedout(start_time: float, timeout: float = 5.0) -> bool:
+    """ checks to see if the while loop should timeout. Returns true if timeout is reached """
+    # logging.debug(f"start_time: {start_time}, now: {time.process_time()}")
+    return ((time.process_time() - start_time) >= timeout)
 
-def main(limit: int, suffix: str, t: str):
+def end_status(buffer:str, capture_limit):
+    if len(buffer) < (capture_limit * 10):
+        return "timed out"
+    else:
+        return "done"
+
+def main(limit: int, suffix: str, rec_timeout: str):
     logging.basicConfig(level=logging.DEBUG)
-    finished = False
+    
     capture_limit = limit
     ignored_data = ["", "/n", "/r"]
     buffer = ""
     recv = ""
-    datalogger = DataLogger(timeout=0.1)
+    datalogger = DataLogger(0.1)
 
     # flush input buffer
     datalogger.adc.flushInput()
@@ -411,7 +316,7 @@ def main(limit: int, suffix: str, t: str):
 
     # send trigger
     datalogger.send_command("t", 0)
-    print("triggered")
+    logging.debug("triggered")
     # sleep(0.5)
     # recv = datalogger.adc.read_until().decode("utf-8")
     # print(f"recv: {recv}")
@@ -424,15 +329,14 @@ def main(limit: int, suffix: str, t: str):
 
     # read data from device
     start_time = time.process_time()
-    while True:
+    while not timedout(timeout=rec_timeout, start_time=start_time):
         recv = datalogger.adc.read_until().decode()
         if ";" in recv:
             break
         buffer += recv
 
-    save_to_csv(buffer.split("\r\n"), f"{capture_limit}_{t}us_{suffix}.csv")
-    print(f"done, {time.process_time() - start_time}")
-
+    save_to_csv(buffer.split("\r\n"), f"{capture_limit}_{suffix}.csv")
+    logging.debug(f"{end_status(buffer, capture_limit)}, time:{time.process_time() - start_time}")
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
@@ -446,12 +350,14 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-t", help="time_us", type=str, default="250",
+        "-rec_timeout", help="timeout value for serial data recovery", type=float, default=5,
     )
 
     parser.add_argument(
         "-suffix", help="suffix", type=str, default="0",
     )
+
+
 
     args = parser.parse_args()
 
