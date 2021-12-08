@@ -11,9 +11,9 @@ import argparse
 import csv
 import serial
 import serial.tools.list_ports
-from datalogger import DataLogger
-from tracecontroller import TraceController
-from experiment import Action, TraceParameters, Experiment, ExperimentHandler
+from src.datalogger import DataLogger
+from src.tracecontroller import TraceController
+from src.experiment import Action, TraceParameters, Experiment, ExperimentHandler
 from threading import Thread, Event
 from datetime import datetime
 import re
