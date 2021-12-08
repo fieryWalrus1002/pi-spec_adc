@@ -2,12 +2,12 @@ import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
 # from tkinter import *
 from tkinter.messagebox import showinfo
-
+import logging
 
 import matplotlib
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 from matplotlib.figure import Figure
-
+import argparse
 import csv
 import serial
 import serial.tools.list_ports
@@ -48,8 +48,8 @@ class PISPEC_APP():
     # this is the GUI
     def __init__(self, name):
         self.init_window_name=name
-        self.datalogger = connect_daq()
-        self.tracecontroller = connect_serial()
+        self.datalogger = DataLogger()
+        self.tracecontroller = TraceController()
         self.experimenthandler = ExperimentHandler(tracecontroller = self.tracecontroller, datalogger = self.datalogger, gui = self)
         
     def popup_bonus(self):
@@ -339,10 +339,9 @@ class PISPEC_APP():
         # run that experiment
         self.experimenthandler.run_experiment()
         
-
-    def send_to_tracecontroller(self):
-        command = self.serial_cmd_input.get()
-        self.tracecontroller.set_parameters(command)
+    # def send_to_tracecontroller(self):
+    #     command = self.serial_cmd_input.get()
+    #     self.tracecontroller.set_parameters(command)
 
     def check_buffer(self):
         recv = self.tracecontroller.read_buffer()
@@ -371,12 +370,10 @@ def start_window():
 
 def main(p: int):
     datalogger = DataLogger()
-    tracecontroller = connect_serial()
+    tracecontroller = TraceController()
     experimenthandler = ExperimentHandler(tracecontroller = tracecontroller, datalogger = datalogger)
-    self.run_experiment()
-
-    
-
+    # self.run_experiment()
+    logging.debug("did it work?")
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

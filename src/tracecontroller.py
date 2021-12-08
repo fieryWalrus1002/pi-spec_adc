@@ -16,6 +16,7 @@ class TraceController():
         """
 
         for port in serial.tools.list_ports.comports():
+            
             if port.vid == 1027:
                 device = port.device
                 logging.debug(device)

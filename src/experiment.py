@@ -1,4 +1,5 @@
 import time
+import logging
 import csv
 from pathlib import Path
 import pickle
@@ -166,10 +167,11 @@ class ExperimentHandler():
         
         self.experiment = self.prepare_example_experiments()
         self.gui = gui
-        if gui not None:
-            self.log = gui.send_to_log
-        else:
+        if gui is None:
             self.log = self.debug_log
+        else:
+            self.log = gui.send_to_log
+            
             
 
     def debug_log(self, msg: str):
