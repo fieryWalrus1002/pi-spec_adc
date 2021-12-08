@@ -371,8 +371,13 @@ def start_window():
 
 def main(p: int):
     datalogger = DataLogger()
-    logging.debug("Done.")
+    tracecontroller = connect_serial()
+    experimenthandler = ExperimentHandler(tracecontroller = tracecontroller, datalogger = datalogger)
+    self.run_experiment()
+
     
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 

@@ -103,27 +103,19 @@ class Experiment():
             print("Experiment Finished")
         else:
             pass
-        
-    
+   
     
     def execute_trace(self):
+        """ executes the programmed measurement trace, and saves data """
+        
         # set up the analog trace using num_points
-        print("ready analog scan")
-        self.datalogger.ready_scan(self.trace_parameters.num_points)
+        self.datalogger.ready_scan(num_points=self.trace_parameters.num_points)
         
-        # send the m command to arduino to execute the trace
-        print("trigger trace")
+        # send the m command to tracecontroller to execute measurement trace
         self.tracecontroller.set_parameters("m;")
-        print("trig sent")
         
-        # wait for trace to complete
-        trace_length = (self.trace_parameters.num_points * (self.trace_parameters.pulse_interval * 0.000001))
-        print(f"trace_length: {trace_length}s")
-        time.sleep(trace_length * 1.1)
-
-        # retrieve data from ADC
-        data = []
-        data = self.datalogger.get_data(self.trace_parameters.num_points)
+        # retrieve data from ADC, in list form
+        data = self.datalogger.receive_data(timeout=1)
         
         data_dict = {"trace_data" : data, "trace_params" : self.trace_parameters, "trace_num" : self.trace_cnt}
 
@@ -166,14 +158,23 @@ class ExperimentHandler():
     #   - set parameters for a trace
     #   - execute a trace
     #   - save data to file, 
-    def __init__(self, tracecontroller, datalogger, gui):
+    def __init__(self, tracecontroller, datalogger, gui=None):
         # self.action_list = []
         self.tracecontroller = tracecontroller
         self.datalogger = datalogger
         self.experiment = None
+        
+        self.experiment = self.prepare_example_experiments()
         self.gui = gui
-        self.log = gui.send_to_log
-        self.prepare_example_experiments()
+        if gui not None:
+            self.log = gui.send_to_log
+        else:
+            self.log = self.debug_log
+            
+
+    def debug_log(self, msg: str):
+        """ logging.debug print to console when running in cli """
+        logging.debug(msg)
 
     def run_experiment(self):
         if self.experiment is None:
@@ -181,10 +182,6 @@ class ExperimentHandler():
         else:
             for action in self.experiment.action_list:
                 self.experiment.execute_action(action)
-                # action.execute_action(self.tracecontroller, self.datalogger
-
-                # should be this instead:
-                # action.run()
 
     def load_experiment(self, experiment):
         self.experiment = experiment
@@ -216,11 +213,11 @@ class ExperimentHandler():
         self.experiment.add_action(action_type="save_data", action_value="0")
         self.experiment.add_action(action_type="end_step", action_value="0")
         
-    def prepare_example_experiments(self):
+    def prepare_example_experiments(self) -> Experiment:
         # create a trace paramter objects for experiment
         trace1 = TraceParameters(num_points=1000, 
-                                pulse_interval=1000, 
-                                pulse_length=50,
+                                pulse_interval=250,
+                                pulse_length=30,
                                 meas_led_ir=5, 
                                 meas_led_vis=0, 
                                 gain_vis = 0,
@@ -232,8 +229,8 @@ class ExperimentHandler():
                                 trace_note = "800nm")
         
         trace2 = TraceParameters(num_points=1000, 
-                                pulse_interval=1000, 
-                                pulse_length=50,
+                                pulse_interval=250, 
+                                pulse_length=30,
                                 meas_led_ir=6, 
                                 meas_led_vis=0, 
                                 gain_vis = 0,
@@ -252,20 +249,16 @@ class ExperimentHandler():
         
         # add the actions of the experiment
         p700_experiment.add_action("set_parameters", trace1)
-        p700_experiment.add_action(action_type="wait", action_value="1")
         p700_experiment.add_action(action_type="execute_trace", action_value="0")
         p700_experiment.add_action(action_type="save_data", action_value="0")
-#         p700_experiment.add_action(action_type="wait", action_value="60")
-        p700_experiment.add_action(action_type="wait", action_value="2")
         p700_experiment.add_action("set_parameters", trace2)
-        p700_experiment.add_action(action_type="wait", action_value="1")
         p700_experiment.add_action(action_type="execute_trace", action_value="0")
         p700_experiment.add_action(action_type="save_data", action_value="0")
-        
+
         p700_experiment.add_action(action_type="end_step", action_value="0")
         
-        # add it to the experiment handler as the active experiment
-        self.experiment = p700_experiment
+        # return this experiment
+        return p700_experiment
         
         # experiment is created, save to disk
 #         pickle.dump(p700_experiment, open( "p700_experiment.p", "wb" ) )

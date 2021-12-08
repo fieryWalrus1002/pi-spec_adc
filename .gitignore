@@ -14,6 +14,7 @@ __pycache__/
 */renv/
 /renv/
 
+pi-spec-venv/
 
 # C extensions
 *.so
@@ -206,3 +207,6 @@ po/*~
 *.docx
 *.jpg
 term_project_workspace.code-workspace
+
+# old files 
+*.bk
