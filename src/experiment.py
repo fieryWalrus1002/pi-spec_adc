@@ -61,10 +61,9 @@ class Experiment():
     # Actions can be any of these things:
     #   set_parameter, wait, light, execute_trace, save_data
 
-    def __init__(self, datalogger, tracecontroller, log):
+    def __init__(self, datalogger, tracecontroller):
         self.datalogger = datalogger
         self.tracecontroller = tracecontroller
-        self.log = log
         self.action_list = []
         self.trace_parameters = None # holds current trace_paramenters, updated frequently
         self.trace_cnt = 0 # the trace counter, increments for each trace executed
@@ -87,7 +86,7 @@ class Experiment():
            
             # update our variables on the arduino
             params_string = self.trace_parameters.parameter_string
-            print(f"updating trace parameters: {params_string}")
+            logging.debug(f"updating trace parameters: {params_string}")
 
             self.tracecontroller.set_parameters(params_string)
 
@@ -101,7 +100,7 @@ class Experiment():
             self.wait(action.value)
 
         elif action.type == "end_step":
-            print("Experiment Finished")
+            logging.debug("Experiment Finished")
         else:
             pass
    
@@ -110,14 +109,17 @@ class Experiment():
         """ executes the programmed measurement trace, and saves data """
         
         # set up the analog trace using num_points
-        self.datalogger.ready_scan(num_points=self.trace_parameters.num_points)
-        
+        # self.datalogger.ready_scan(num_points=self.trace_parameters.num_points -1)
+        self.datalogger.ready_scan(num_points=10)
+        logging.debug("ready_scan")
+        time.sleep(.04)
+        logging.debug("trigger trace")
         # send the m command to tracecontroller to execute measurement trace
         self.tracecontroller.set_parameters("m;")
-        
+        logging.debug("trace executed, waiting for data")
         # retrieve data from ADC, in list form
-        data = self.datalogger.receive_data(timeout=1)
-        
+        data = self.datalogger.receive_data(timeout=0.0003)
+        logging.debug("data received")
         data_dict = {"trace_data" : data, "trace_params" : self.trace_parameters, "trace_num" : self.trace_cnt}
 
         self.data_list.append(data_dict)
@@ -126,22 +128,24 @@ class Experiment():
         self.trace_cnt += 1
         
     def save_data(self):
-        print(f"save that data! found {len(self.data_list)} trace data to save")
+        logging.debug(f"save that data! found {len(self.data_list)} trace data to save")
         
         for data_dict in self.data_list:
+            for item in data_dict["trace_data"]:
+                print(item)
+
             filename = self.datalogger.save_data_to_csv(data_dict["trace_data"], data_dict["trace_params"], data_dict["trace_num"])
-            print(f"export: {filename}")
+            logging.debug(f"export: {filename}")
 
     def wait(self, wait_time):
         start_time = time.time()
         wait_time = float(wait_time)
         time_elapsed = 0
-        self.log(f"waiting {wait_time} seconds \n")
-        
+                
         while time_elapsed <= wait_time:
             time.sleep(.01)
             time_elapsed = round(time.time() - start_time, 3)
-        self.log(f"waited {time_elapsed} seconds \n")
+        
 
 
 class ExperimentHandler():
@@ -167,10 +171,7 @@ class ExperimentHandler():
         
         self.experiment = self.prepare_example_experiments()
         self.gui = gui
-        if gui is None:
-            self.log = self.debug_log
-        else:
-            self.log = gui.send_to_log
+
             
             
 
@@ -180,7 +181,7 @@ class ExperimentHandler():
 
     def run_experiment(self):
         if self.experiment is None:
-            print("No experiment loaded.")
+            logging.debug("No experiment loaded.")
         else:
             for action in self.experiment.action_list:
                 self.experiment.execute_action(action)
@@ -207,7 +208,7 @@ class ExperimentHandler():
         print(trace1.parameter_string)
 
         # create an experiment object
-        self.experiment = Experiment(datalogger=self.datalogger, tracecontroller=self.tracecontroller, log=self.log)           
+        self.experiment = Experiment(datalogger=self.datalogger, tracecontroller=self.tracecontroller)           
         
         self.experiment.add_action("set_parameters", trace1)
         self.experiment.add_action(action_type="wait", action_value="1")
@@ -243,11 +244,11 @@ class ExperimentHandler():
                                 pulse_mode=1,
                                 trace_note = "900nm")
         
-        print(f"trace1: {trace1.parameter_string}")
-        print(f"trace2: {trace2.parameter_string}")
+        logging.debug(f"trace1: {trace1.parameter_string}")
+        logging.debug(f"trace2: {trace2.parameter_string}")
 
         # create an experiment object
-        p700_experiment = Experiment(datalogger=self.datalogger, tracecontroller=self.tracecontroller, log=self.log)           
+        p700_experiment = Experiment(datalogger=self.datalogger, tracecontroller=self.tracecontroller)           
         
         # add the actions of the experiment
         p700_experiment.add_action("set_parameters", trace1)

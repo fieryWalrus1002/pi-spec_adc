@@ -372,7 +372,7 @@ def main(p: int):
     datalogger = DataLogger()
     tracecontroller = TraceController()
     experimenthandler = ExperimentHandler(tracecontroller = tracecontroller, datalogger = datalogger)
-    # self.run_experiment()
+    experimenthandler.run_experiment()
     logging.debug("did it work?")
 
 if __name__ == "__main__":

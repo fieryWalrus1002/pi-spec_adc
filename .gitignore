@@ -1,3 +1,6 @@
+workspace*
+teamviewer*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -13,7 +16,7 @@ __pycache__/
 # renv files
 */renv/
 /renv/
-
+/pi-venv/
 pi-spec-venv/
 
 # C extensions
