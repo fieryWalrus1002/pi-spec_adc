@@ -18,7 +18,7 @@ __pycache__/
 /renv/
 /pi-venv/
 pi-spec-venv/
-
+pispec/
 # C extensions
 *.so
 
