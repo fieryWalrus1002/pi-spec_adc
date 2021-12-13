@@ -369,7 +369,7 @@ def start_window():
 # start_window()
 
 def main(p: int):
-    datalogger = DataLogger()
+    datalogger = DataLogger(timeout=4)
     tracecontroller = TraceController()
     experimenthandler = ExperimentHandler(tracecontroller = tracecontroller, datalogger = datalogger)
     experimenthandler.run_experiment()
