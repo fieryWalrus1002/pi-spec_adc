@@ -16,6 +16,7 @@ import pandas as pd
 import serial
 import serial.tools.list_ports
 
+
 class DataLogger:
     def __init__(self, timeout: float = 1.0):
         self.adc = None
@@ -47,41 +48,44 @@ class DataLogger:
         cmd_output = cmd_input + str(value) + ";"
         self.adc.write(cmd_output.encode("utf-8"))
 
-    def receive_data(self, timeout: float) -> list:
-        """ waits for data to be received from the ADC, then returns it as a list """        
-        data = []               
+    def receive_data(self, timeout: float = 0.5) -> list:
+        """waits for data to be received from the ADC, then returns it as a list"""
         buffer = ""
         recv = ""
-        
+
         # read data from device
-        start_time = time.process_time()
-        while not self._timedout(timeout=timeout, start_time=start_time):
+        start_time = time.time()
+        timed_out = False
+
+        while not timed_out:
             recv = self.adc.read_until().decode()
-            if ";" in recv:
-                break
+
             buffer += recv
 
-        data = buffer.split("\r\n")
-        
-        return data
+            current_time = time.time() - start_time
+
+            if current_time > timeout:
+                timed_out = True
+
+        return buffer
 
     def ready_scan(self, num_points):
-        """ updates ADC on how many data points to expect, and then triggers measurement
+        """updates ADC on how many data points to expect, and then triggers measurement
         mode.
         Parameters
-        num_points: the number of incoming triggers that the ADC will expect. 
+        num_points: the number of incoming triggers that the ADC will expect.
         """
         # flush input buffer
         self.adc.flushInput()
 
         # send command to change capture limit
-        self._send_command("l", num_points)   
+        self._send_command("l", num_points)
         logging.debug(f"capture_limit updated to {num_points}")
 
         # send trigger
         self._send_command("t", 0)
-        logging.debug("triggered")
-    
+        logging.debug("adc ready for trigger")
+
     # def save_to_csv(self, buffer: list, filename: str):
     #     # write the data for this trace to dis
 
@@ -133,6 +137,6 @@ class DataLogger:
         return trace_filename
 
     def _timedout(self, start_time: float, timeout: float = 1.0) -> bool:
-        """ checks to see if the while loop should timeout. Returns true if timeout is reached """
+        """checks to see if the while loop should timeout. Returns true if timeout is reached"""
         # logging.debug(f"start_time: {start_time}, now: {time.process_time()}")
-        return ((time.process_time() - start_time) >= timeout)
+        return (time.process_time() - start_time) >= timeout
