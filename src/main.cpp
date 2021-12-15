@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <main.h>
 
 // adcdma
 //  analog A0
@@ -33,7 +34,6 @@ uint16_t test_result = 0;
 
 volatile int counter = 0;
 volatile int write_counter = 0;
-int transfer_done = false;
 
 uint16_t data[DATA_LIMIT];
 long time_us[DATA_LIMIT];
@@ -205,12 +205,8 @@ void retrieve_state()
     Serial.print("counter: ");
     Serial.print(counter);
     Serial.print(", write_counter: ");
-    Serial.println(write_counter);
-}
-
-void get_data(int num_data_points)
-{
-    // nothing
+    Serial.print(write_counter);
+    Serial.println(";");
 }
 
 void toggle_capture()
@@ -219,7 +215,6 @@ void toggle_capture()
     counter = 0;
     write_counter = 0;
     measure_state = 1;
-    transfer_done = 0;
 }
 
 void set_capture_limit(int current_value)
@@ -232,7 +227,7 @@ void handle_action()
     switch (state)
     {
     case GOT_G:
-        get_data(current_value);
+        get_data();
         break;
     case GOT_L:
         set_capture_limit(current_value);
@@ -292,12 +287,19 @@ void process_inc_byte(const byte c)
     }     // end of not digit
 }
 
+void get_data()
+{
+    for (int i = 0; i <= capture_limit; i++)
+    {
+        send_data_point(i);
+    }
+}
+
 void send_data_point(int wrt_cnt)
 {
     if (wrt_cnt >= capture_limit)
     {
         Serial.println(";");
-        transfer_done = 1;
     }
     else
     {
@@ -310,6 +312,7 @@ void send_data_point(int wrt_cnt)
         Serial.println(data[wrt_cnt]);
     }
 }
+
 
 void setup()
 {
@@ -337,13 +340,13 @@ void loop()
 
     if (counter >= capture_limit)
     {
-        digitalWrite(LED_BUILTIN, LOW);
-        while (write_counter <= capture_limit)
-        {
-            send_data_point(write_counter);
-            write_counter++;
-        }
-        digitalWrite(LED_BUILTIN, HIGH);
+        measure_state = 0;
+
+        // if (write_counter <= capture_limit)
+        // {
+        //     send_data_point(write_counter);
+        //     write_counter++;
+        // }
     }
 
     // if (write_counter >= capture_limit)
