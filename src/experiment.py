@@ -23,8 +23,8 @@ class TraceParameters():
         self.meas_led_vis =  kwargs.get('meas_led_vis',0)
         self.meas_led_ir =  kwargs.get('meas_led_ir', 4)
         self.pulse_length = kwargs.get('pulse_length', 50)
-        self.sat_pulse_length =  kwargs.get('sat_pulse_length', 500)
-        self.sat_trigger_point =  kwargs.get('sat_trigger_point', 900)
+        self.sat_pulse_end =  kwargs.get('sat_pulse_end', 20)
+        self.sat_pulse_begin =  kwargs.get('sat_pulse_begin', 10)
         self.act_int_phase =  kwargs.get('act_int_phase', [0, 0, 0])
         self.pulse_mode =  kwargs.get('pulse_mode', 1)
         self.trace_note = kwargs.get('trace_note', "")
@@ -38,8 +38,8 @@ class TraceParameters():
                          f"v{self.meas_led_vis}",
                          f"r{self.meas_led_ir}",
                          f"p{self.pulse_length}",
-                         f"s{self.sat_pulse_length}",
-                         f"t{self.sat_trigger_point}",
+                         f"s{self.sat_pulse_end}",
+                         f"t{self.sat_pulse_begin}",
                          f"w{self.act_int_phase[0]}",
                          f"x{self.act_int_phase[1]}",
                          f"y{self.act_int_phase[2]}",
@@ -89,8 +89,11 @@ class Experiment():
             logging.debug(f"updating trace parameters: {params_string}")
 
             self.tracecontroller.set_parameters(params_string)
+            
 
         elif action.type == "execute_trace":
+            self.datalogger.ready_scan(num_points=self.trace_parameters.num_points)
+            time.sleep(0.4)
             self.execute_trace()
 
         elif action.type == "save_data":
@@ -103,23 +106,20 @@ class Experiment():
             logging.debug("Experiment Finished")
         else:
             pass
+        
+        
    
     
     def execute_trace(self):
         """ executes the programmed measurement trace, and saves data """
-        
-        # set up the analog trace using num_points
-        # self.datalogger.ready_scan(num_points=self.trace_parameters.num_points -1)
-        self.datalogger.ready_scan(num_points=10)
-        logging.debug("ready_scan")
-        time.sleep(.04)
-        logging.debug("trigger trace")
         # send the m command to tracecontroller to execute measurement trace
         self.tracecontroller.set_parameters("m;")
         logging.debug("trace executed, waiting for data")
         # retrieve data from ADC, in list form
-        data = self.datalogger.receive_data(timeout=0.0003)
+        data = self.datalogger.receive_data(timeout=0.0001)
+        
         logging.debug("data received")
+        print(data)
         data_dict = {"trace_data" : data, "trace_params" : self.trace_parameters, "trace_num" : self.trace_cnt}
 
         self.data_list.append(data_dict)
@@ -199,14 +199,12 @@ class ExperimentHandler():
                                 gain_vis = dict["gain_vis"],
                                 gain_ir = dict["gain_ir"],
                                 act_int_phase=dict["act_int_phase"],
-                                sat_trigger_point=dict["sat_trigger_point"],
-                                sat_pulse_length=dict["sat_pulse_length"],
+                                sat_pulse_begin=dict["sat_pulse_begin"],
+                                sat_pulse_end=dict["sat_pulse_end"],
                                 pulse_mode=dict["pulse_mode"],
                                 trace_note = dict["trace_note"])
-    
         
-        print(trace1.parameter_string)
-
+        
         # create an experiment object
         self.experiment = Experiment(datalogger=self.datalogger, tracecontroller=self.tracecontroller)           
         
@@ -215,6 +213,8 @@ class ExperimentHandler():
         self.experiment.add_action(action_type="execute_trace", action_value="0")
         self.experiment.add_action(action_type="save_data", action_value="0")
         self.experiment.add_action(action_type="end_step", action_value="0")
+        
+        return trace1
         
     def prepare_example_experiments(self) -> Experiment:
         # create a trace paramter objects for experiment
@@ -226,8 +226,8 @@ class ExperimentHandler():
                                 gain_vis = 0,
                                 gain_ir = 0,
                                 act_int_phase=[0, 0, 0],
-                                sat_trigger_point=200,
-                                sat_pulse_length=200,
+                                sat_pulse_begin=400,
+                                sat_pulse_end=600,
                                 pulse_mode=1,
                                 trace_note = "800nm")
         
@@ -239,13 +239,13 @@ class ExperimentHandler():
                                 gain_vis = 0,
                                 gain_ir = 0,
                                 act_int_phase=[0, 0, 0],
-                                sat_trigger_point=200,
-                                sat_pulse_length=200,
+                                sat_pulse_begin=400,
+                                sat_pulse_end=600,
                                 pulse_mode=1,
                                 trace_note = "900nm")
         
-        logging.debug(f"trace1: {trace1.parameter_string}")
-        logging.debug(f"trace2: {trace2.parameter_string}")
+        #logging.debug(f"trace1: {trace1.parameter_string}")
+        #logging.debug(f"trace2: {trace2.parameter_string}")
 
         # create an experiment object
         p700_experiment = Experiment(datalogger=self.datalogger, tracecontroller=self.tracecontroller)           

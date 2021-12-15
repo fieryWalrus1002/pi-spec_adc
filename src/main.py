@@ -368,12 +368,53 @@ def start_window():
 
 # start_window()
 
-def main(p: int):
-    datalogger = DataLogger(timeout=4)
-    tracecontroller = TraceController()
-    experimenthandler = ExperimentHandler(tracecontroller = tracecontroller, datalogger = datalogger)
-    experimenthandler.run_experiment()
-    logging.debug("did it work?")
+def main(pulse_interval: int = 500, trace_note: str = ""):
+    ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
+    time.sleep(5)
+    buf = ''
+    for _ in range(10):
+        ser.write("d".encode())    
+        buf += str(ser.read())
+        time.sleep(0.1)
+    print(buf)        
+
+def main2(pulse_interval: int = 500, trace_note: str = ""):
+    datalogger = DataLogger(timeout=0.5)
+    tracecontroller = TraceController(baud_rate=115200, timeout=0.25)
+    experimenthandler = ExperimentHandler(tracecontroller = tracecontroller, datalogger = datalogger, )
+    
+    trace1 = {"num_points": 500,
+              "pulse_interval": pulse_interval,
+              "pulse_length":25,
+              "meas_led_ir":0,
+              "meas_led_vis": 0,
+              "gain_vis":0,
+              "gain_ir" :0,
+              "act_int_phase" : [0, 0, 0],
+              "sat_pulse_begin" : 200,
+              "sat_pulse_end" : 300,
+              "pulse_mode" : 1,
+              "trace_note" : trace_note}
+    
+    params = experimenthandler.create_experiment_from_dict(trace1)
+    ser = tracecontroller.tcdev
+    
+    while True:
+        out = ''
+        #ser.write("8".encode())
+        time.sleep(1)
+        ser.write("g".encode())
+        if ser.in_waiting > 0:
+            out += str(ser.read_until())
+        if out != '':
+            print(">>" + out)
+
+            
+        
+
+    #logging.debug("run_experiment()")
+    #experimenthandler.run_experiment()
+    logging.debug("done")
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
@@ -383,11 +424,18 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-p",
-        help="placeholder",
+        "-pulse_interval",
+        help="pulse_interval in us",
         type=int,
         default=0,
     )
+    
+    parser.add_argument(
+        "-trace_note",
+        help="note for trace file when saving this experiment",
+        type=str,
+        default="",
+        )
 
     args = parser.parse_args()
 
