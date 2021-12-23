@@ -1,0 +1,9 @@
+trace_params,n1000;i250;g0;h0;v0;r5;p30;s600;t400;w0;x0;y0;z1;
+num,time_us,acq_time,value
+""
+trace_params,n1000;i250;g0;h0;v0;r5;p30;s600;t400;w0;x0;y0;z1;
+num,time_us,acq_time,value
+""
+trace_params,n1000;i250;g0;h0;v0;r5;p30;s600;t400;w0;x0;y0;z1;
+num,time_us,acq_time,value
+""

@@ -403,7 +403,7 @@ def main(pulse_interval: int = 500, trace_note: str = ""):
     print(buf)
 
 
-def main2(num_points: int, pulse_interval: int, trace_note: str):
+def main2(num_points: int, pulse_interval: int, meas_led_ir: int, meas_led_vis: int, pulse_length: int, sat_pulse_begin: int, sat_pulse_end: int, adc_timeout: float, pulse_mode: int, trigger_delay: int, trace_note: str, ):
     datalogger = DataLogger()
     tracecontroller = TraceController(baud_rate=9600)
     experimenthandler = ExperimentHandler(
@@ -414,36 +414,62 @@ def main2(num_points: int, pulse_interval: int, trace_note: str):
     trace1 = {
         "num_points": num_points,
         "pulse_interval": pulse_interval,
-        "pulse_length": 25,
-        "meas_led_ir": 0,
-        "meas_led_vis": 0,
+        "pulse_length": pulse_length,
+        "meas_led_ir": meas_led_ir,
+        "meas_led_vis": meas_led_vis,
         "gain_vis": 0,
         "gain_ir": 0,
         "act_int_phase": [0, 0, 0],
-        "sat_pulse_begin": 200,
-        "sat_pulse_end": 300,
-        "pulse_mode": 1,
+        "sat_pulse_begin": sat_pulse_begin,
+        "sat_pulse_end": sat_pulse_end,
+        "pulse_mode": pulse_mode,
         "trace_note": trace_note,
     }
 
     params = experimenthandler.create_experiment_from_dict(trace1)
-    tracecontroller.set_parameters(f"n{num_points};i{pulse_interval};d;")
-
+    tracecontroller.set_parameters('r', meas_led_ir)
+    tracecontroller.set_parameters('v', meas_led_vis)
+    tracecontroller.set_parameters('n', num_points)
+    tracecontroller.set_parameters('z', pulse_mode)
+    tracecontroller.set_parameters('i', pulse_interval)
+    tracecontroller.set_parameters('p', pulse_length)
+    tracecontroller.set_parameters('e', trigger_delay)
+    tracecontroller.set_parameters('w', 0)
+    tracecontroller.set_parameters('x', 0)
+    tracecontroller.set_parameters('y', 0)           
+    tracecontroller.set_parameters('d', 0)
+    logging.debug(tracecontroller.receive_data(timeout=0.5))
+    
     trace_length = (num_points * pulse_interval) / 100000
-    logging.debug(f"trace_length(us): {trace_length * 100000}")
-
-    data = tracecontroller.receive_data(timeout=2)
-    logging.debug(data)
+    logging.debug(f"trace_length(s): {trace_length}")
+    
+        
     datalogger.ready_scan(num_points=num_points)
-    time.sleep(1)
-    tracecontroller.set_parameters("m;")
-    time.sleep(1)
+    logging.debug(datalogger.receive_data(timeout=0.5))
+    
+    def wait_for_tracecontroller():
+        recv = ""
+        while ";" not in recv:
+            recv = tracecontroller.receive_data(timeout=0.5)
+        return recv
+    
+    def wait_for_adc():
+        recv = ""
+        while ";" not in recv:
+            recv = datalogger.receive_data(timeout=2)
+        return recv
+    
+    tracecontroller.set_parameters('m', 0)
+    print(wait_for_tracecontroller())
+    print(wait_for_adc())
+    #time.sleep(5)       
     datalogger._send_command("g", 0)
-    data = datalogger.receive_data(timeout=1)
-    logging.debug(data)
+    data = datalogger.receive_data(timeout=adc_timeout)
+    logging.debug(data[-100:-1])
+    logging.debug("saving data")
+    datalogger.save_buffer_to_csv(wl=(str(meas_led_vis) + "_" + str(meas_led_ir)), buffer=data, trace_num=0, trace_note="testing")
     logging.debug("done")
-
-
+    
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
@@ -455,7 +481,7 @@ if __name__ == "__main__":
         "-num_points",
         help="number of data points to gather in a trace",
         type=int,
-        default=1000,
+        default=2000,
     )
 
     parser.add_argument(
@@ -466,10 +492,66 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "-meas_led_ir",
+        help="meas_led_ir array number",
+        type=int,
+        default=5,
+    )
+
+    parser.add_argument(
+        "-meas_led_vis",
+        help="meas_led_vis array number",
+        type=int,
+        default=2,
+    )
+
+    parser.add_argument(
+        "-pulse_length",
+        help="how long, in us, is the measurement pulse length",
+        type=int,
+        default=50
+    )
+
+    parser.add_argument(
+        "-sat_pulse_begin",
+        help="at what point does the saturation pulse turn on",
+        type=int,
+        default=400,
+    )
+
+    parser.add_argument(
+        "-sat_pulse_end",
+        help="at what point does the saturation pulse turn off",
+        type=int,
+        default=600,
+    )
+
+    parser.add_argument(
+        "-adc_timeout",
+        help="how long should we wait for data from the adc to be returned",
+        type=float,
+        default=2.0
+    )
+    
+    parser.add_argument(
+        "-pulse_mode",
+        help="0 for no sat pulse, 1 for sat pulse, 2 for stf",
+        type=int,
+        default=1
+        )
+    
+    parser.add_argument(
+        "-trigger_delay",
+        help="us delay from start of pulse to adc_trigger signal",
+        type=int,
+        default=25
+        )
+    
+    parser.add_argument(
         "-trace_note",
         help="note for trace file when saving this experiment",
         type=str,
-        default="",
+        default="test",
     )
 
     args = parser.parse_args()

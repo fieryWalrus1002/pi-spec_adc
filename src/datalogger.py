@@ -55,17 +55,14 @@ class DataLogger:
 
         # read data from device
         start_time = time.time()
-        timed_out = False
+        while True:
+            if self.adc.in_waiting > 0:
 
-        while not timed_out:
-            recv = self.adc.read_until().decode()
+                recv = self.adc.read(self.adc.in_waiting).decode()
+                buffer += recv
 
-            buffer += recv
-
-            current_time = time.time() - start_time
-
-            if current_time > timeout:
-                timed_out = True
+            if (time.time() - start_time) > timeout:
+                break
 
         return buffer
 
@@ -80,11 +77,10 @@ class DataLogger:
 
         # send command to change capture limit
         self._send_command("l", num_points)
-        logging.debug(f"capture_limit updated to {num_points}")
 
         # send trigger
         self._send_command("t", 0)
-        logging.debug("adc ready for trigger")
+        
 
     # def save_to_csv(self, buffer: list, filename: str):
     #     # write the data for this trace to dis
@@ -97,6 +93,42 @@ class DataLogger:
     #             row = string.split(",")
     #             writer.writerow(row)
     #     f.close()
+
+    def save_buffer_to_csv(self, wl:str = "test", buffer: str = "", trace_num:int = 0, trace_note: str = ""):
+        trace_date = time.strftime("%d%m%y")
+        trace_time = time.strftime("%H%M")
+
+        export_path = (
+            "./export/"
+            + trace_date
+            + "_"
+            + trace_time
+            + "_"
+            + wl
+            + "_"
+            + trace_note
+            + str(trace_num)
+        )
+        trace_filename = export_path + ".csv"
+
+        # make the directory if it doesn't exist already
+        Path("./export/").mkdir(parents=True, exist_ok=True)
+
+        # split string
+        trace_data = buffer.strip("\r").strip('"').split("\n")
+
+        # write the data for this trace to disk
+        with open(trace_filename, "a") as f:
+            writer = csv.writer(f, delimiter=",")
+            # writer.writerow(["trace_params", trace_params.parameter_string])
+            writer.writerow(["num", "time_us", "acq_time", "value"])
+
+            for row in trace_data:
+                writer.writerow(row.split(","))
+        f.close()
+
+        return trace_filename
+
 
     def save_data_to_csv(self, trace_data, trace_params, trace_num):
         wl = str(trace_params.meas_led_vis) + str(trace_params.meas_led_ir)
@@ -130,7 +162,7 @@ class DataLogger:
             writer.writerow(["trace_params", trace_params.parameter_string])
             writer.writerow(["num", "time_us", "acq_time", "value"])
 
-            for row in trace_data:
+            for row in data:
                 writer.writerow(row.split(","))
         f.close()
 

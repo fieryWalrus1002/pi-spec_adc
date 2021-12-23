@@ -6,10 +6,10 @@ import time
 
 class TraceController:
     def __init__(self, baud_rate: int = 115200, timeout: float = 1.0):
-        self.tcdev = None
-        self.connect_tcdev(baud_rate, timeout)
+        self.ser = None
+        self.connect_ser(baud_rate, timeout)
 
-    def connect_tcdev(self, baud_rate, timeout):
+    def connect_ser(self, baud_rate, timeout):
         """connects to microcontroller device with serial, returns connection to device
 
         Currently a chipkit MX3 from Digilent @ ttyUSB0, displays as:
@@ -22,22 +22,22 @@ class TraceController:
                 device = port.device
                 logging.debug(device)
 
-        while self.tcdev is None:
-            logging.debug(f"connecting to tcdev at {device}...")
-            self.tcdev = serial.Serial(device, baud_rate, timeout=timeout)
+        while self.ser is None:
+            logging.debug(f"connecting to ser at {device}...")
+            self.ser = serial.Serial(device, baud_rate, timeout=timeout)
 
-            if self.tcdev is None:
+            if self.ser is None:
                 time.sleep(1)
         time.sleep(12)
-        logging.debug(f"tcdev connected at {device}")
+        logging.debug(f"ser connected at {device}")
 
     def get_diagnostic_info(self):
-        return self.tcdev
+        return self.ser
 
     def get_num_points(self):
         self.set_parameters("d")
         time.sleep(0.25)
-        recv = self.tcdev.readline()
+        recv = self.ser.readline()
         return recv
 
     def get_parameters(self):
@@ -46,12 +46,16 @@ class TraceController:
         params = self.receive_data(timeout=0.001)
         return params
 
-    def set_parameters(self, cmd_input):
-        cmd_output = str(cmd_input) + "\r"
-        self.tcdev.write(cmd_output.encode("utf-8"))
+    def set_parameters(self, cmd_input, value):
+        cmd_output = cmd_input + str(value) + ";"
+        self.ser.write(cmd_output.encode("utf-8"))
+
+    # def set_parameters(self, cmd_input):
+    #     cmd_output = str(cmd_input) + ";\r"
+    #     self.ser.write(cmd_output.encode("utf-8"))
 
     def read_buffer(self):
-        recv = self.tcdev.readline()
+        recv = self.ser.readline()
         return recv
 
     def receive_data(self, timeout: float = 0.5) -> list:
@@ -64,7 +68,7 @@ class TraceController:
         timed_out = False
 
         while not timed_out:
-            recv = self.tcdev.read_until().decode()
+            recv = self.ser.read_until().decode()
 
             buffer += recv
 

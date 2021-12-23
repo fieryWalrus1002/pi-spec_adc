@@ -161,7 +161,6 @@ src/__pycache__/
 src/grana_model/py.typed
 src/grana_model.egg-info/
 venv/Lib/site-packages
-*.csv
 .vscode/
 
 
