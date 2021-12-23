@@ -15,6 +15,7 @@
 typedef enum
 {
     NONE,
+    GOT_A,  // disable and re-enable the ADC
     GOT_G, // get data from memory and send across serial
     GOT_L, // capture limit, send this many data points per trigger
     GOT_R, // set receive status
@@ -141,20 +142,43 @@ void adc_init()
     ADC->CTRLA.bit.ENABLE = 0x00; // Disable ADC
     ADCsync();
     // ADC->REFCTRL.bit.REFSEL = ADC_REFCTRL_REFSEL_INTVCC0_Val; //  2.2297 V Supply VDDANA
-    // ADC->INPUTCTRL.bit.GAIN = ADC_INPUTCTRL_GAIN_1X_Val;      // Gain select as 1X
-    ADC->INPUTCTRL.bit.GAIN = ADC_INPUTCTRL_GAIN_DIV2_Val; // default
-    ADC->REFCTRL.bit.REFSEL = ADC_REFCTRL_REFSEL_INTVCC1_Val;
+    // ADC->INPUTCTRL.bit.GAIN = ADC_INPUTCTRL_GAIN_2X_Val;      // Gain select as 1X
+    // ADC->INPUTCTRL.bit.GAIN = ADC_INPUTCTRL_GAIN_DIV2_Val; // defaulth
+    ADC->INPUTCTRL.bit.GAIN = ADC_INPUTCTRL_GAIN_1X;
+    // ADC->REFCTRL.bit.REFSEL = ADC_REFCTRL_REFSEL_INTVCC1_Val;
+    ADC->REFCTRL.bit.REFSEL = ADC_REFCTRL_REFSEL_INTVCC0;
+    ADCsync();
+    // ADC->INPUTCTRL.bit.MUXNEG = 0x18;
     ADCsync(); //  ref 31.6.16
     ADC->INPUTCTRL.bit.MUXPOS = g_APinDescription[ADCPIN].ulADCChannelNumber;
     ADCsync();
     ADC->AVGCTRL.reg = 0x00; // no averaging
+    // ADC->AVGCTRL.reg = ADC_AVGCTRL_SAMPLENUM_1_Val | ADC_AVGCTRL_ADJRES(0);
+    ADCsync();
     ADC->SAMPCTRL.reg = 0x00;
     ; // sample length in 1/2 CLK_ADC cycles
     ADCsync();
     ADC->CTRLB.reg = ADC_CTRLB_PRESCALER_DIV16 | ADC_CTRLB_FREERUN | ADC_CTRLB_RESSEL_12BIT;
     ADCsync();
+    
+    
+    int16_t offset_error = 124;
+
+    int16_t gain_error = 2112;
+
+    ADC->OFFSETCORR.reg = ADC_OFFSETCORR_OFFSETCORR(offset_error);
+    ADC->GAINCORR.reg = ADC_GAINCORR_GAINCORR(gain_error);
+
+    ADC->CTRLB.bit.CORREN = false;
+    ADCsync();
     ADC->CTRLA.bit.ENABLE = 0x01;
     ADCsync();
+}
+
+void reset_adc()
+{
+    ADC->CTRLA.bit.ENABLE = 0x00;
+    adc_init();
 }
 
 void adc_trigger()
@@ -215,6 +239,7 @@ void toggle_capture()
     counter = 0;
     write_counter = 0;
     measure_state = 1;
+    Serial.println("capture_ready;");
 }
 
 void set_capture_limit(int current_value)
@@ -226,6 +251,10 @@ void handle_action()
 {
     switch (state)
     {
+    case GOT_A:
+        // reset adc
+        reset_adc();
+        break;
     case GOT_G:
         get_data();
         break;
@@ -264,6 +293,9 @@ void process_inc_byte(const byte c)
         {
         case ';':
             handle_action();
+            break;
+        case 'a':
+            state = GOT_A;
             break;
         case 'g':
             state = GOT_G;
@@ -316,15 +348,50 @@ void send_data_point(int wrt_cnt)
 
 void setup()
 {
-    Serial.begin(115200);
+    Serial.begin(9600);
     testLED_init();
     adc_init();
     dma_init();
     extInt_init();
 }
 
+void test_adc(){
+
+
+    sample = 0;
+    long begin_us = micros();
+    adc_dma(adcbuf, HWORDS);
+    while (!dmadone)
+        ; // await DMA done isr
+    long end_us = micros() - begin_us;
+    Serial.print(end_us);
+    Serial.print(", ");
+
+    // volatile float volt_out = (float)adcbuf[0] / 4095 * 1.65;
+
+    Serial.println(adcbuf[0]);
+    // Serial.println(volt_out);
+
+    // if (HWORDS > 1)
+    // {
+    //     for (int i = 0; i < HWORDS; i++)
+    //     {
+    //         sample += adcbuf[i];
+    //     }
+    //     data[counter] = (uint16_t)(sample / HWORDS);
+    // }
+    // else
+    // {
+    //    Serial.println(adcbuf[0]);
+    // }
+}
+
 void loop()
 {
+
+    // test_adc();
+    // delay(250);
+
     while (Serial.available())
     {
         process_inc_byte(Serial.read());
@@ -340,7 +407,12 @@ void loop()
 
     if (counter >= capture_limit)
     {
-        measure_state = 0;
+        if (measure_state==1)
+        {
+            Serial.println("capture_complete;");
+            measure_state = 0;
+        }
+
 
         // if (write_counter <= capture_limit)
         // {
