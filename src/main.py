@@ -9,6 +9,7 @@ import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
 import argparse
+import pandas as pd
 import csv
 import serial
 from serial.serialutil import PARITY_NONE, STOPBITS_ONE
@@ -403,12 +404,54 @@ def main(pulse_interval: int = 500, trace_note: str = ""):
     print(buf)
 
 
-def main2(num_points: int, pulse_interval: int, meas_led_ir: int, meas_led_vis: int, pulse_length: int, sat_pulse_begin: int, sat_pulse_end: int, adc_timeout: float, pulse_mode: int, trigger_delay: int, trace_note: str, ):
+def calibrate_trigger_delay(
+    datalogger, tracecontroller, num_points, meas_led_ir, meas_led_vis, pulse_length
+):
+    """ sets up datalogger for x points, then sets up tracecontroller to trigger several
+    different very short protocols. max value returned from datalogger corresponds to
+    best trigger_delay."""
+
+    datalogger.ready_scan(num_points=num_points)
+    tracecontroller.set_parameters("n", 1)
+    tracecontroller.set_parameters("r", meas_led_ir)
+    tracecontroller.set_parameters("v", meas_led_vis)
+    tracecontroller.set_parameters("p", pulse_length)
+
+    for i in range(num_points):
+        tracecontroller.set_parameters("e", i * 2)
+        tracecontroller.set_parameters("m", 0)
+        print(wait_for_response(device=tracecontroller, timeout=0.5))
+
+    datalogger._send_command("g", 0)
+    data = datalogger.receive_data(timeout=2.0)
+    df = pd.read_table(data, sep=",")
+    print(df)
+
+
+def wait_for_response(device, timeout: float = 0.5):
+    recv = ""
+    while ";" not in recv:
+        recv = device.receive_data(timeout=timeout)
+    return recv
+
+
+def main2(
+    num_points: int,
+    pulse_interval: int,
+    meas_led_ir: int,
+    meas_led_vis: int,
+    pulse_length: int,
+    sat_pulse_begin: int,
+    sat_pulse_end: int,
+    adc_timeout: float,
+    pulse_mode: int,
+    trigger_delay: int,
+    trace_note: str,
+):
     datalogger = DataLogger()
     tracecontroller = TraceController(baud_rate=9600)
     experimenthandler = ExperimentHandler(
-        tracecontroller=tracecontroller,
-        datalogger=datalogger,
+        tracecontroller=tracecontroller, datalogger=datalogger,
     )
 
     trace1 = {
@@ -427,49 +470,44 @@ def main2(num_points: int, pulse_interval: int, meas_led_ir: int, meas_led_vis: 
     }
 
     params = experimenthandler.create_experiment_from_dict(trace1)
-    tracecontroller.set_parameters('r', meas_led_ir)
-    tracecontroller.set_parameters('v', meas_led_vis)
-    tracecontroller.set_parameters('n', num_points)
-    tracecontroller.set_parameters('z', pulse_mode)
-    tracecontroller.set_parameters('i', pulse_interval)
-    tracecontroller.set_parameters('p', pulse_length)
-    tracecontroller.set_parameters('e', trigger_delay)
-    tracecontroller.set_parameters('w', 0)
-    tracecontroller.set_parameters('x', 0)
-    tracecontroller.set_parameters('y', 0)           
-    tracecontroller.set_parameters('d', 0)
+    tracecontroller.set_parameters("r", meas_led_ir)
+    tracecontroller.set_parameters("v", meas_led_vis)
+    tracecontroller.set_parameters("n", num_points)
+    tracecontroller.set_parameters("z", pulse_mode)
+    tracecontroller.set_parameters("i", pulse_interval)
+    tracecontroller.set_parameters("p", pulse_length)
+    tracecontroller.set_parameters("e", trigger_delay)
+    tracecontroller.set_parameters("w", 0)
+    tracecontroller.set_parameters("x", 0)
+    tracecontroller.set_parameters("y", 0)
+    tracecontroller.set_parameters("d", 0)
     logging.debug(tracecontroller.receive_data(timeout=0.5))
-    
+
     trace_length = (num_points * pulse_interval) / 100000
     logging.debug(f"trace_length(s): {trace_length}")
-    
-        
+
     datalogger.ready_scan(num_points=num_points)
     logging.debug(datalogger.receive_data(timeout=0.5))
-    
-    def wait_for_tracecontroller():
-        recv = ""
-        while ";" not in recv:
-            recv = tracecontroller.receive_data(timeout=0.5)
-        return recv
-    
-    def wait_for_adc():
-        recv = ""
-        while ";" not in recv:
-            recv = datalogger.receive_data(timeout=2)
-        return recv
-    
-    tracecontroller.set_parameters('m', 0)
-    print(wait_for_tracecontroller())
-    print(wait_for_adc())
-    #time.sleep(5)       
+
+    tracecontroller.set_parameters("m", 0)
+    print(wait_for_response(device=tracecontroller, timeout=0.5))
+    print(wait_for_response(device=datalogger, timeout=2.0))
+
     datalogger._send_command("g", 0)
     data = datalogger.receive_data(timeout=adc_timeout)
+
     logging.debug(data[-100:-1])
+
     logging.debug("saving data")
-    datalogger.save_buffer_to_csv(wl=(str(meas_led_vis) + "_" + str(meas_led_ir)), buffer=data, trace_num=0, trace_note="testing")
+    datalogger.save_buffer_to_csv(
+        wl=(str(meas_led_vis) + "_" + str(meas_led_ir)),
+        buffer=data,
+        trace_num=0,
+        trace_note="testing",
+    )
     logging.debug("done")
-    
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
@@ -485,31 +523,22 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-pulse_interval",
-        help="pulse_interval in us",
-        type=int,
-        default=250,
+        "-pulse_interval", help="pulse_interval in us", type=int, default=250,
     )
 
     parser.add_argument(
-        "-meas_led_ir",
-        help="meas_led_ir array number",
-        type=int,
-        default=5,
+        "-meas_led_ir", help="meas_led_ir array number", type=int, default=5,
     )
 
     parser.add_argument(
-        "-meas_led_vis",
-        help="meas_led_vis array number",
-        type=int,
-        default=2,
+        "-meas_led_vis", help="meas_led_vis array number", type=int, default=2,
     )
 
     parser.add_argument(
         "-pulse_length",
         help="how long, in us, is the measurement pulse length",
         type=int,
-        default=50
+        default=50,
     )
 
     parser.add_argument(
@@ -530,23 +559,23 @@ if __name__ == "__main__":
         "-adc_timeout",
         help="how long should we wait for data from the adc to be returned",
         type=float,
-        default=2.0
+        default=2.0,
     )
-    
+
     parser.add_argument(
         "-pulse_mode",
         help="0 for no sat pulse, 1 for sat pulse, 2 for stf",
         type=int,
-        default=1
-        )
-    
+        default=1,
+    )
+
     parser.add_argument(
         "-trigger_delay",
         help="us delay from start of pulse to adc_trigger signal",
         type=int,
-        default=25
-        )
-    
+        default=25,
+    )
+
     parser.add_argument(
         "-trace_note",
         help="note for trace file when saving this experiment",
