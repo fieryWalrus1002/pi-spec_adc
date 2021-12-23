@@ -107,6 +107,7 @@ class DataLogger:
             + wl
             + "_"
             + trace_note
+            + "_"
             + str(trace_num)
         )
         trace_filename = export_path + ".csv"
