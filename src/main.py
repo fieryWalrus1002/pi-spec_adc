@@ -4,7 +4,7 @@ from tkinter import ttk, filedialog, messagebox, scrolledtext
 # from tkinter import *
 from tkinter.messagebox import showinfo
 import logging
-
+from io import StringIO
 import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
@@ -417,16 +417,18 @@ def calibrate_trigger_delay(
     tracecontroller.set_parameters("v", meas_led_vis)
     tracecontroller.set_parameters("p", pulse_length)
 
-    for i in range(num_points):
-        tracecontroller.set_parameters("e", i * 2)
-        tracecontroller.set_parameters("m", 0)
-        print(wait_for_response(device=tracecontroller, timeout=0.5))
+    tracecontroller.set_parameters("c", num_points) # set the tracecontroller to init calibration
+
+    wait_for_response(device=datalogger, timeout=2.0)
 
     datalogger._send_command("g", 0)
-    data = datalogger.receive_data(timeout=2.0)
-    df = pd.read_table(data, sep=",")
-    print(df)
-
+    data = datalogger.receive_data(timeout=2.0).strip(";")
+    df = pd.read_table(StringIO(data), sep=",")
+    df.columns =["cnt", "time_us", "acq_time", "value"]
+    idx = df[["value"]].idxmax()
+    new_trig_delay = int(df.iloc[idx]["cnt"]) * 2
+    logging.debug(f"trigger_delay: {new_trig_delay} us")
+    return new_trig_delay
 
 def wait_for_response(device, timeout: float = 0.5):
     recv = ""
@@ -454,6 +456,8 @@ def main2(
         tracecontroller=tracecontroller, datalogger=datalogger,
     )
 
+    
+
     trace1 = {
         "num_points": num_points,
         "pulse_interval": pulse_interval,
@@ -472,6 +476,9 @@ def main2(
     params = experimenthandler.create_experiment_from_dict(trace1)
     tracecontroller.set_parameters("r", meas_led_ir)
     tracecontroller.set_parameters("v", meas_led_vis)
+    
+    trigger_delay = calibrate_trigger_delay(datalogger=datalogger, tracecontroller = tracecontroller, num_points=20, meas_led_ir=meas_led_ir, meas_led_vis=meas_led_vis, pulse_length=pulse_length)
+    
     tracecontroller.set_parameters("n", num_points)
     tracecontroller.set_parameters("z", pulse_mode)
     tracecontroller.set_parameters("i", pulse_interval)
@@ -483,8 +490,10 @@ def main2(
     tracecontroller.set_parameters("d", 0)
     logging.debug(tracecontroller.receive_data(timeout=0.5))
 
-    trace_length = (num_points * pulse_interval) / 100000
-    logging.debug(f"trace_length(s): {trace_length}")
+    
+
+    trace_length = (num_points * pulse_interval) / 1000
+    logging.debug(f"trace_length(s): {trace_length} ms")
 
     datalogger.ready_scan(num_points=num_points)
     logging.debug(datalogger.receive_data(timeout=0.5))
@@ -538,7 +547,7 @@ if __name__ == "__main__":
         "-pulse_length",
         help="how long, in us, is the measurement pulse length",
         type=int,
-        default=50,
+        default=5,
     )
 
     parser.add_argument(
