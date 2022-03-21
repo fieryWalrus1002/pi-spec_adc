@@ -11,24 +11,33 @@ class TraceController:
 
     def connect_ser(self, baud_rate, timeout):
         """connects to microcontroller device with serial, returns connection to device
-
-        Currently a chipkit MX3 from Digilent @ ttyUSB0, displays as:
+        3-21-22 now using Teensy 4.1
+        idVendor=16c0, idProduct=0483, bcdDevice= 2.80
+        Product: USB Serial
+        Manufacturer: Teensyduino
+        SerialNumber: 10167240
+                
+        Was a chipkit MX3 from Digilent @ ttyUSB0, displays as:
         FT232R USB UART - FT232R USB UART ttyUSB0 /dev/ttyUSB0 1027 24577
         """
 
         for port in serial.tools.list_ports.comports():
 
-            if port.vid == 1027:
+            if port.vid == 16c0:
                 device = port.device
                 logging.debug(device)
 
         while self.ser is None:
-            logging.debug(f"connecting to ser at {device}...")
+            logging.debug(f"connection to {device} initiated.")
             self.ser = serial.Serial(device, baud_rate, timeout=timeout)
 
             if self.ser is None:
                 time.sleep(1)
-        time.sleep(12)
+                
+        string = "............"
+        for char in string:
+            print(char, end='')
+            time.sleep(1)
         logging.debug(f"ser connected at {device}")
 
     def get_diagnostic_info(self):
@@ -46,7 +55,7 @@ class TraceController:
         params = self.receive_data(timeout=0.001)
         return params
 
-    def set_parameters(self, cmd_input, value):
+    def set_parameters(self, cmd_input="", value=0):
         cmd_output = cmd_input + str(value) + ";"
         self.ser.write(cmd_output.encode("utf-8"))
 

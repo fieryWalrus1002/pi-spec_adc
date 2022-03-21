@@ -82,13 +82,15 @@ class Experiment():
         print("executing action of type ", action.type, " _and a value of ", action.value)
 
         if action.type == "set_parameters":
+            logging.debug("This one right here, officer")
             self.trace_parameters = action.value
            
             # update our variables on the arduino
             params_string = self.trace_parameters.parameter_string
             logging.debug(f"updating trace parameters: {params_string}")
 
-            self.tracecontroller.set_parameters(params_string)
+            
+            self.tracecontroller.set_parameters(cmd_input="", value=params_string)
             
 
         elif action.type == "execute_trace":
@@ -127,15 +129,36 @@ class Experiment():
         # increment trace counter
         self.trace_cnt += 1
         
+    
+    def wait_for_response(self, device, timeout: float = 0.5):
+        recv = ""
+        while ";" not in recv:
+            recv = device.receive_data(timeout=timeout)
+        return recv
+        
     def save_data(self):
         logging.debug(f"save that data! found {len(self.data_list)} trace data to save")
-        
-        for data_dict in self.data_list:
-            for item in data_dict["trace_data"]:
-                print(item)
+    
+#         print(wait_for_response(device=self.datalogger, timeout=2.0))
+        logging.debug("retrieving data")
+        self.datalogger._send_command("g", 0)
+        data = self.datalogger.receive_data(timeout=2.0)
+        logging.debug("data retrieved")
+        logging.debug(data[-100:-1])
 
-            filename = self.datalogger.save_data_to_csv(data_dict["trace_data"], data_dict["trace_params"], data_dict["trace_num"])
-            logging.debug(f"export: {filename}")
+        logging.debug("saving data")
+        self.datalogger.save_buffer_to_csv(
+            wl=(str(self.trace_parameters.meas_led_vis) + "_" + str(self.trace_parameters.meas_led_ir)),
+            buffer=data,
+            trace_num=0,
+            trace_note="gui_test")
+#         
+#         for data_dict in self.data_list:
+#             for item in data_dict["trace_data"]:
+#                 print(item)
+# 
+#             filename = self.datalogger.save_data_to_csv(data_dict["trace_data"], data_dict["trace_params"], data_dict["trace_num"])
+#             logging.debug(f"export: {filename}")
 
     def wait(self, wait_time):
         start_time = time.time()

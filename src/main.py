@@ -22,6 +22,7 @@ from datetime import datetime
 import re
 import itertools
 import time
+from datetime import date
 
 # drawing heavy influence from https://github.com/qmylzq/tkinter-pyserial-tools/blob/e5c9dda56bbc9a3eeef205303f0096859c68de8e/tk_serial.py
 
@@ -212,25 +213,25 @@ class PISPEC_APP:
         self.act_int_phase_entry = tk.Entry(frame2, textvariable=self.act_int_phase_var)
         self.act_int_phase_entry.grid(row=1, column=3)
 
-        # "sat_trigger_point":self.sat_trigger_point_var.get()
-        sat_trigger_point_label = tk.Label(frame2, text="sat_trigger_point: ")
-        sat_trigger_point_label.grid(row=0, column=4)
-        self.sat_trigger_point_var = tk.IntVar()
-        self.sat_trigger_point_var.set(200)
-        self.sat_trigger_point_entry = tk.Entry(
-            frame2, textvariable=self.sat_trigger_point_var
+        # "sat_pulse_begin":self.sat_pulse_begin_var.get()
+        sat_pulse_begin_label = tk.Label(frame2, text="sat_pulse_begin: ")
+        sat_pulse_begin_label.grid(row=0, column=4)
+        self.sat_pulse_begin_var = tk.IntVar()
+        self.sat_pulse_begin_var.set(200)
+        self.sat_pulse_begin_entry = tk.Entry(
+            frame2, textvariable=self.sat_pulse_begin_var
         )
-        self.sat_trigger_point_entry.grid(row=1, column=4)
+        self.sat_pulse_begin_entry.grid(row=1, column=4)
 
-        # "sat_pulse_length":self.sat_pulse_length_var.get()
-        sat_pulse_length_label = tk.Label(frame2, text="sat_pulse_length: ")
-        sat_pulse_length_label.grid(row=0, column=5)
-        self.sat_pulse_length_var = tk.IntVar()
-        self.sat_pulse_length_var.set(200)
-        self.sat_pulse_length_entry = tk.Entry(
-            frame2, textvariable=self.sat_pulse_length_var
+        # "sat_pulse_end":self.sat_pulse_end_var.get()
+        sat_pulse_end_label = tk.Label(frame2, text="sat_pulse_end: ")
+        sat_pulse_end_label.grid(row=0, column=5)
+        self.sat_pulse_end_var = tk.IntVar()
+        self.sat_pulse_end_var.set(200)
+        self.sat_pulse_end_entry = tk.Entry(
+            frame2, textvariable=self.sat_pulse_end_var
         )
-        self.sat_pulse_length_entry.grid(row=1, column=5)
+        self.sat_pulse_end_entry.grid(row=1, column=5)
 
         # create vis_led button
         # "meas_led_vis":self.vis_LED_selected.get(),
@@ -345,8 +346,8 @@ class PISPEC_APP:
             "gain_vis": self.gain_vis_selected.get(),
             "gain_ir": self.gain_ir_selected.get(),
             "act_int_phase": act_int_phase_list,
-            "sat_trigger_point": int(self.sat_trigger_point_var.get()),
-            "sat_pulse_length": int(self.sat_pulse_length_var.get()),
+            "sat_pulse_begin": int(self.sat_pulse_begin_var.get()),
+            "sat_pulse_end": int(self.sat_pulse_end_var.get()),
             "pulse_mode": self.pulse_mode_var.get(),
             "trace_note": self.note_var.get(),
         }
@@ -392,18 +393,6 @@ def start_window():
 
 # start_window()
 
-
-def main(pulse_interval: int = 500, trace_note: str = ""):
-    ser = serial.Serial("/dev/ttyUSB0", 115200, timeout=1)
-    time.sleep(5)
-    buf = ""
-    for _ in range(10):
-        ser.write("d".encode())
-        buf += str(ser.read())
-        time.sleep(0.1)
-    print(buf)
-
-
 def calibrate_trigger_delay(
     datalogger, tracecontroller, num_points, meas_led_ir, meas_led_vis, pulse_length
 ):
@@ -436,8 +425,35 @@ def wait_for_response(device, timeout: float = 0.5):
         recv = device.receive_data(timeout=timeout)
     return recv
 
+def send_warning():
+    print("trigger in...")
+    for i in range(0, 3):
+        print(3-i)
+        time.sleep(1)
+        
+def trace_init(tracecontroller, trace):
+    #params = experimenthandler.create_experiment_from_dict(trace1)
+    tracecontroller.set_parameters("r", trace["meas_led_ir"])
+    tracecontroller.set_parameters("v", trace["meas_led_vis"])
+    tracecontroller.set_parameters("n", trace["num_points"])
+    tracecontroller.set_parameters("z", trace["pulse_mode"])
+    tracecontroller.set_parameters("i", trace["pulse_interval"])
+    tracecontroller.set_parameters("p", trace["pulse_length"])
+    tracecontroller.set_parameters("e", trace["trigger_delay"])
+    tracecontroller.set_parameters("w", 0)
+    tracecontroller.set_parameters("x", 0)
+    tracecontroller.set_parameters("y", 0)
+    tracecontroller.set_parameters("d", 0)
+    logging.debug(tracecontroller.receive_data(timeout=0.5))
 
-def main2(
+
+def test_pulse_output(tracecontroller):
+    tracecontroller.set_parameters("m", 0)
+    print(wait_for_response(device=tracecontroller, timeout=0.5))
+
+def main(
+    gui: bool,
+    pulser_test: bool,
     num_points: int,
     pulse_interval: int,
     meas_led_ir: int,
@@ -450,71 +466,64 @@ def main2(
     trigger_delay: int,
     trace_note: str,
 ):
-    datalogger = DataLogger()
-    tracecontroller = TraceController(baud_rate=9600)
-    experimenthandler = ExperimentHandler(
-        tracecontroller=tracecontroller, datalogger=datalogger,
-    )
-
+    if gui:
+        start_window()
+    else:           
+        datalogger = DataLogger()
+        tracecontroller = TraceController(baud_rate=9600)
+        #experimenthandler = ExperimentHandler(
+            #tracecontroller=tracecontroller, datalogger=datalogger,
+        #)
     
+        trace_init(tracecontroller, {
+            "num_points": num_points,
+            "pulse_interval": pulse_interval,
+            "pulse_length": pulse_length,
+            "meas_led_ir": meas_led_ir,
+            "meas_led_vis": meas_led_vis,
+            "gain_vis": 0,
+            "gain_ir": 0,
+            "act_int_phase": [0, 0, 0],
+            "sat_pulse_begin": sat_pulse_begin,
+            "sat_pulse_end": sat_pulse_end,
+            "pulse_mode": pulse_mode,
+            "trace_note": trace_note,
+            "trigger_delay": trigger_delay,
+        })
+        
+        if (pulser_test == True):
+            test_pulse_output(tracecontroller)
+        
+        else:
+            trace_length = (num_points * pulse_interval) / 1000
+            logging.debug(f"trace_length(s): {trace_length} ms")
 
-    trace1 = {
-        "num_points": num_points,
-        "pulse_interval": pulse_interval,
-        "pulse_length": pulse_length,
-        "meas_led_ir": meas_led_ir,
-        "meas_led_vis": meas_led_vis,
-        "gain_vis": 0,
-        "gain_ir": 0,
-        "act_int_phase": [0, 0, 0],
-        "sat_pulse_begin": sat_pulse_begin,
-        "sat_pulse_end": sat_pulse_end,
-        "pulse_mode": pulse_mode,
-        "trace_note": trace_note,
-    }
+            datalogger.ready_scan(num_points=num_points)
+            logging.debug(datalogger.receive_data(timeout=0.5))
 
-    params = experimenthandler.create_experiment_from_dict(trace1)
-    tracecontroller.set_parameters("r", meas_led_ir)
-    tracecontroller.set_parameters("v", meas_led_vis)
-    
-    trigger_delay = calibrate_trigger_delay(datalogger=datalogger, tracecontroller = tracecontroller, num_points=20, meas_led_ir=meas_led_ir, meas_led_vis=meas_led_vis, pulse_length=pulse_length)
-    
-    tracecontroller.set_parameters("n", num_points)
-    tracecontroller.set_parameters("z", pulse_mode)
-    tracecontroller.set_parameters("i", pulse_interval)
-    tracecontroller.set_parameters("p", pulse_length)
-    tracecontroller.set_parameters("e", trigger_delay)
-    tracecontroller.set_parameters("w", 0)
-    tracecontroller.set_parameters("x", 0)
-    tracecontroller.set_parameters("y", 0)
-    tracecontroller.set_parameters("d", 0)
-    logging.debug(tracecontroller.receive_data(timeout=0.5))
+            send_warning()
 
-    
+            tracecontroller.set_parameters("m", 0)
+            print(wait_for_response(device=tracecontroller, timeout=0.5))
+            time.sleep(1)
+        
+            print(wait_for_response(device=datalogger, timeout=2.0))
+            logging.debug("retrieving data")
+            datalogger._send_command("g", 0)
+            data = datalogger.receive_data(timeout=adc_timeout)
+            logging.debug("data retrieved")
+            logging.debug(data[-100:-1])
 
-    trace_length = (num_points * pulse_interval) / 1000
-    logging.debug(f"trace_length(s): {trace_length} ms")
-
-    datalogger.ready_scan(num_points=num_points)
-    logging.debug(datalogger.receive_data(timeout=0.5))
-
-    tracecontroller.set_parameters("m", 0)
-    print(wait_for_response(device=tracecontroller, timeout=0.5))
-    print(wait_for_response(device=datalogger, timeout=2.0))
-
-    datalogger._send_command("g", 0)
-    data = datalogger.receive_data(timeout=adc_timeout)
-
-    logging.debug(data[-100:-1])
-
-    logging.debug("saving data")
-    datalogger.save_buffer_to_csv(
-        wl=(str(meas_led_vis) + "_" + str(meas_led_ir)),
-        buffer=data,
-        trace_num=0,
-        trace_note="testing",
-    )
-    logging.debug("done")
+            logging.debug("saving data")
+            datalogger.save_buffer_to_csv(
+                wl=(str(meas_led_vis) + "_" + str(meas_led_ir)),
+                buffer=data,
+                trace_num=0,
+                trace_note="testing",
+            )
+            
+        
+        logging.debug("done")
 
 
 if __name__ == "__main__":
@@ -525,6 +534,21 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
+        "-gui",
+        help="launch gui",
+        type=bool,
+        default=False,
+    )
+
+    parser.add_argument(
+        "-pulser_test",
+        help="if pulser test is true, no data is collected",
+        type=bool,
+        default=False,
+        
+    )
+    
+    parser.add_argument(
         "-num_points",
         help="number of data points to gather in a trace",
         type=int,
@@ -532,22 +556,22 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "-pulse_interval", help="pulse_interval in us", type=int, default=250,
+        "-pulse_interval", help="pulse_interval in us", type=int, default=1000,
     )
 
     parser.add_argument(
-        "-meas_led_ir", help="meas_led_ir array number", type=int, default=5,
+        "-meas_led_ir", help="meas_led_ir array number", type=int, default=2,
     )
 
     parser.add_argument(
-        "-meas_led_vis", help="meas_led_vis array number", type=int, default=2,
+        "-meas_led_vis", help="meas_led_vis array number", type=int, default=7,
     )
 
     parser.add_argument(
         "-pulse_length",
         help="how long, in us, is the measurement pulse length",
         type=int,
-        default=5,
+        default=50,
     )
 
     parser.add_argument(
@@ -582,7 +606,7 @@ if __name__ == "__main__":
         "-trigger_delay",
         help="us delay from start of pulse to adc_trigger signal",
         type=int,
-        default=25,
+        default=0,
     )
 
     parser.add_argument(
@@ -593,5 +617,4 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-
-    main2(**vars(args))
+    main(**vars(args))
