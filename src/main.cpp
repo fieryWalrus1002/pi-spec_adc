@@ -1,17 +1,23 @@
-#include <Arduino.h>
+
 #include <main.h>
+#include <Arduino.h>
+// #include <SPI.h>
+// #include <Wire.h>
+// #include <Adafruit_GFX.h>
+// #include <Adafruit_SSD1306.h>
 
 // adcdma
 //  analog A0
 //   could use DAC to provide input voltage   A0
 //   http://www.atmel.com/Images/Atmel-42258-ASF-Manual-SAM-D21_AP-Note_AT07627.pdf pg 73
-#define ADCPIN A0
+#define ADCPIN A1
 #define HWORDS 1
 #define EXT0_PORT PORTA
 #define EXT0_PIN_NUMBER A7
 #define EXT0_PIN_MASK PORT_PA07
 #define TEST_LED 13
 #define DATA_LIMIT 2500
+
 typedef enum
 {
     NONE,
@@ -66,6 +72,48 @@ dmacdescriptor descriptor __attribute__((aligned(16)));
 
 static uint32_t chnl = 0; // DMA channel
 volatile uint32_t dmadone;
+
+// Adafruit_SSD1306 display();
+
+
+
+#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_HEIGHT 32 // OLED display height, in pixels
+
+// Declaration for an SSD1306 display connected to I2C
+// Seeeduino Xiao: SDA 4, SCL 5
+
+#define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
+#define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
+
+// Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
+// void init_display(){
+  
+//   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+//     Serial.println(F("SSD1306 allocation failed"));
+//     for(;;); // Don't proceed, loop forever
+//   }
+//   display.clearDisplay();
+//   display.setTextSize(1);
+//   display.setTextColor(WHITE);
+//   display.setCursor(0, 10);
+//   // Display static text
+//   display.println("Hello, world!");
+//   display.display();
+//   delay(1000);
+// }
+
+// void mprint(const char format[]){
+//     display.clearDisplay();
+//     display.setTextSize(1);
+//     display.setTextColor(WHITE);
+//     display.setCursor(0, 10);
+//     display.printf(format);
+//     display.display();
+//     delay(1000);
+//     display.clearDisplay();
+// }
 
 void DMAC_Handler()
 {
@@ -353,6 +401,9 @@ void setup()
     adc_init();
     dma_init();
     extInt_init();
+    // display.begin(SSD1306_SWITCHCAPVCC, 0x3c);
+    // display.setTextSize(1);
+    // display.setTextColor(WHITE);
 }
 
 void test_adc(){
@@ -387,8 +438,16 @@ void test_adc(){
 }
 
 void loop()
-{
+{   
 
+    // display.clearDisplay();
+    // display.setCursor(0, 15);
+    // display.print(counter);
+    // display.display();
+    // display.clearDisplay();
+    // display.setCursor(0, 15);
+    // display.print(counter);
+    // display.display();
     // test_adc();
     // delay(250);
 
@@ -407,6 +466,7 @@ void loop()
 
     if (counter >= capture_limit)
     {
+        digitalWrite(LED_BUILTIN, HIGH); // turn off the LED
         if (measure_state==1)
         {
             Serial.println("capture_complete;");
