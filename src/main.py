@@ -483,12 +483,13 @@ def main(
             "meas_led_vis": meas_led_vis,
             "gain_vis": 0,
             "gain_ir": 0,
-            "act_int_phase": [0, 0, 0],
+            "act_int_phase": [0, 5000, 0],
             "sat_pulse_begin": sat_pulse_begin,
             "sat_pulse_end": sat_pulse_end,
             "pulse_mode": pulse_mode,
             "trace_note": trace_note,
             "trigger_delay": trigger_delay,
+            
         })
         
         if (pulser_test == True):
@@ -504,10 +505,10 @@ def main(
             send_warning()
 
             tracecontroller.set_parameters("m", 0)
-            print(wait_for_response(device=tracecontroller, timeout=0.5))
+            #print(wait_for_response(device=tracecontroller, timeout=0.5))
             time.sleep(1)
-        
-            print(wait_for_response(device=datalogger, timeout=2.0))
+            print("we made it this far")
+            #print(wait_for_response(device=datalogger, timeout=2.0))
             logging.debug("retrieving data")
             datalogger._send_command("g", 0)
             data = datalogger.receive_data(timeout=adc_timeout)

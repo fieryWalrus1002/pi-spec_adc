@@ -22,8 +22,9 @@ class TraceController:
         """
 
         for port in serial.tools.list_ports.comports():
-
-            if port.vid == 16c0:
+            
+            if port.vid == int('16c0', 16):
+                print(port.vid)
                 device = port.device
                 logging.debug(device)
 

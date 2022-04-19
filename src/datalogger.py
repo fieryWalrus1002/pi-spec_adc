@@ -29,6 +29,7 @@ class DataLogger:
         """creates serial connection to ADC device"""
         # ttyACM0 Seeeduino, vid 10374, pid 32815
         for port in serial.tools.list_ports.comports():
+            #print(port.vid)
             if port.vid == 10374:
                 device = port.device
 
