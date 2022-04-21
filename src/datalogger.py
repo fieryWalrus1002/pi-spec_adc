@@ -13,124 +13,12 @@ from sys import exit
 from time import sleep
 from multiprocessing import Process
 import pandas as pd
-import serial
-import serial.tools.list_ports
-
 
 class DataLogger:
-    def __init__(self, timeout: float = 1.0):
-        self.adc = None
-        self.packet_size = 1000
-        self.connect_adc(timeout=timeout)
+    def __init__(self):
+        self.packet_size = 1000 
         self.data = []
         self.df = None
-
-    def connect_adc(self, timeout: float = 1.0):
-        """creates serial connection to ADC device"""
-        # ttyACM0 Seeeduino, vid 10374, pid 32815
-        for port in serial.tools.list_ports.comports():
-            #print(port.vid)
-            if port.vid == 10374:
-                device = port.device
-
-        while self.adc is None:
-            logging.debug("connecting to ADC")
-            self.adc = serial.Serial(device, 4000000, timeout=timeout)
-
-            if self.adc is None:
-                sleep(1)
-
-        logging.debug(f"ADC connected, timeout= {timeout}")
-
-    def close_connection(self):
-        self.adc.close()
-
-    def _send_command(self, cmd_input, value):
-        cmd_output = cmd_input + str(value) + ";"
-        self.adc.write(cmd_output.encode("utf-8"))
-
-    def receive_data(self, timeout: float = 0.5) -> list:
-        """waits for data to be received from the ADC, then returns it as a list"""
-        buffer = ""
-        recv = ""
-
-        # read data from device
-        start_time = time.time()
-        while True:
-            if self.adc.in_waiting > 0:
-
-                recv = self.adc.read(self.adc.in_waiting).decode()
-                buffer += recv
-
-            if (time.time() - start_time) > timeout:
-                break
-
-        return buffer
-
-    def ready_scan(self, num_points):
-        """updates ADC on how many data points to expect, and then triggers measurement
-        mode.
-        Parameters
-        num_points: the number of incoming triggers that the ADC will expect.
-        """
-        # flush input buffer
-        self.adc.flushInput()
-
-        # send command to change capture limit
-        self._send_command("l", num_points)
-
-        # send trigger
-        self._send_command("t", 0)
-        
-
-    # def save_to_csv(self, buffer: list, filename: str):
-    #     # write the data for this trace to dis
-
-    #     with open(filename, "w") as f:
-    #         writer = csv.writer(f, delimiter=",")
-    #         writer.writerow(["cnt", "time_us", "acq_time", "data"])
-
-    #         for string in buffer:
-    #             row = string.split(",")
-    #             writer.writerow(row)
-    #     f.close()
-
-    def save_buffer_to_csv(self, wl:str = "test", buffer: str = "", trace_num:int = 0, trace_note: str = ""):
-        trace_date = time.strftime("%d%m%y")
-        trace_time = time.strftime("%H%M")
-
-        export_path = (
-            "./export/"
-            + trace_date
-            + "_"
-            + trace_time
-            + "_"
-            + wl
-            + "_"
-            + trace_note
-            + "_"
-            + str(trace_num)
-        )
-        trace_filename = export_path + ".csv"
-
-        # make the directory if it doesn't exist already
-        Path("./export/").mkdir(parents=True, exist_ok=True)
-
-        # split string
-        trace_data = buffer.strip("\r").strip('"').split("\n")
-
-        # write the data for this trace to disk
-        with open(trace_filename, "a") as f:
-            writer = csv.writer(f, delimiter=",")
-            # writer.writerow(["trace_params", trace_params.parameter_string])
-            writer.writerow(["num", "time_us", "acq_time", "value"])
-
-            for row in trace_data:
-                writer.writerow(row.split(","))
-        f.close()
-
-        return trace_filename
-
 
     def save_data_to_csv(self, trace_data, trace_params, trace_num):
         wl = str(trace_params.meas_led_vis) + str(trace_params.meas_led_ir)
@@ -169,8 +57,3 @@ class DataLogger:
         f.close()
 
         return trace_filename
-
-    def _timedout(self, start_time: float, timeout: float = 1.0) -> bool:
-        """checks to see if the while loop should timeout. Returns true if timeout is reached"""
-        # logging.debug(f"start_time: {start_time}, now: {time.process_time()}")
-        return (time.process_time() - start_time) >= timeout

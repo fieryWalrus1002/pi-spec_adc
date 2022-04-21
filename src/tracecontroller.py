@@ -60,31 +60,17 @@ class TraceController:
         cmd_output = cmd_input + str(value) + ";"
         self.ser.write(cmd_output.encode("utf-8"))
 
-    # def set_parameters(self, cmd_input):
-    #     cmd_output = str(cmd_input) + ";\r"
-    #     self.ser.write(cmd_output.encode("utf-8"))
-
     def read_buffer(self):
         recv = self.ser.readline()
         return recv
 
-    def receive_data(self, timeout: float = 0.5) -> list:
+    def receive_data(self) -> list:
         """waits for data to be received from the ADC, then returns it as a list"""
         buffer = ""
         recv = ""
 
-        # read data from device
-        start_time = time.time()
-        timed_out = False
-
-        while not timed_out:
+        while self.ser.in_waiting > 0:
             recv = self.ser.read_until().decode()
-
             buffer += recv
-
-            current_time = time.time() - start_time
-
-            if current_time > timeout:
-                timed_out = True
 
         return buffer
