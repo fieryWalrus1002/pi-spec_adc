@@ -13,7 +13,7 @@ class TraceParameters():
     def __init__(self, **kwargs):
         # TODO: add in the code that takes our string of paramaters and 
         # both submits it to the tracecontroller but also logs it here for easy reference. 
-        # The tracecontroller will ask this object what num_points is for the datalogger module,
+        # The tracecontroller will ask this object what num_points is for the tracecontroller module,
         # and we can have a function here that exports the settings for a data object in a 
         # human readable format
         self.num_points = kwargs.get('num_points', 2000)
@@ -61,8 +61,7 @@ class Experiment():
     # Actions can be any of these things:
     #   set_parameter, wait, light, execute_trace, save_data
 
-    def __init__(self, datalogger, tracecontroller):
-        self.datalogger = datalogger
+    def __init__(self, tracecontroller):
         self.tracecontroller = tracecontroller
         self.action_list = []
         self.trace_parameters = None # holds current trace_paramenters, updated frequently
@@ -94,7 +93,7 @@ class Experiment():
             
 
         elif action.type == "execute_trace":
-            self.datalogger.ready_scan(num_points=self.trace_parameters.num_points)
+            self.tracecontroller.ready_scan(num_points=self.trace_parameters.num_points)
             time.sleep(0.4)
             self.execute_trace()
 
@@ -118,7 +117,7 @@ class Experiment():
         self.tracecontroller.set_parameters("m;")
         logging.debug("trace executed, waiting for data")
         # retrieve data from ADC, in list form
-        data = self.datalogger.receive_data(timeout=0.0001)
+        data = self.tracecontroller.receive_data(timeout=0.0001)
         
         logging.debug("data received")
         print(data)
@@ -139,25 +138,24 @@ class Experiment():
     def save_data(self):
         logging.debug(f"save that data! found {len(self.data_list)} trace data to save")
     
-#         print(wait_for_response(device=self.datalogger, timeout=2.0))
+#         print(wait_for_response(device=self.tracecontroller, timeout=2.0))
         logging.debug("retrieving data")
-        self.datalogger._send_command("g", 0)
-        data = self.datalogger.receive_data(timeout=2.0)
+        self.tracecontroller._send_command("g", 0)
+        data = self.tracecontroller.receive_data()
         logging.debug("data retrieved")
         logging.debug(data[-100:-1])
 
         logging.debug("saving data")
-        self.datalogger.save_buffer_to_csv(
-            wl=(str(self.trace_parameters.meas_led_vis) + "_" + str(self.trace_parameters.meas_led_ir)),
+        self.tracecontroller.save_buffer_to_csv(
             buffer=data,
-            trace_num=0,
-            trace_note="gui_test")
+            trace_params = self.trace_parameters,
+            trace_num=0,)
 #         
 #         for data_dict in self.data_list:
 #             for item in data_dict["trace_data"]:
 #                 print(item)
 # 
-#             filename = self.datalogger.save_data_to_csv(data_dict["trace_data"], data_dict["trace_params"], data_dict["trace_num"])
+#             filename = self.tracecontroller.save_data_to_csv(data_dict["trace_data"], data_dict["trace_params"], data_dict["trace_num"])
 #             logging.debug(f"export: {filename}")
 
     def wait(self, wait_time):
@@ -186,10 +184,9 @@ class ExperimentHandler():
     #   - set parameters for a trace
     #   - execute a trace
     #   - save data to file, 
-    def __init__(self, tracecontroller, datalogger, gui=None):
+    def __init__(self, tracecontroller, gui=None):
         # self.action_list = []
         self.tracecontroller = tracecontroller
-        self.datalogger = datalogger
         self.experiment = None
         
         self.experiment = self.prepare_example_experiments()
@@ -229,7 +226,7 @@ class ExperimentHandler():
         
         
         # create an experiment object
-        self.experiment = Experiment(datalogger=self.datalogger, tracecontroller=self.tracecontroller)           
+        self.experiment = Experiment(tracecontroller=self.tracecontroller)           
         
         self.experiment.add_action("set_parameters", trace1)
         self.experiment.add_action(action_type="wait", action_value="1")
@@ -271,7 +268,7 @@ class ExperimentHandler():
         #logging.debug(f"trace2: {trace2.parameter_string}")
 
         # create an experiment object
-        p700_experiment = Experiment(datalogger=self.datalogger, tracecontroller=self.tracecontroller)           
+        p700_experiment = Experiment(tracecontroller=self.tracecontroller)           
         
         # add the actions of the experiment
         p700_experiment.add_action("set_parameters", trace1)
