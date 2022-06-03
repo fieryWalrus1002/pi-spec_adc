@@ -93,7 +93,6 @@ class TraceController:
         while recv_state:
             if self.ser.in_waiting > 0:
                 recv.extend(self.ser.read_all())
-
                 try:
                     decoded = recv.decode()
                 except UnicodeDecodeError:
@@ -106,7 +105,7 @@ class TraceController:
 
             timeout_cnt += 1
 
-            if timeout_cnt > 100:
+            if timeout_cnt > 10000:
                 logging.debug("timed out")
                 return buffer
 

@@ -1,4 +1,5 @@
 from asyncio import wait_for
+from inspect import trace
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, scrolledtext
 
@@ -10,6 +11,7 @@ import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
 import argparse
+import numpy
 import pandas as pd
 import csv
 import serial
@@ -511,30 +513,35 @@ def main(
             trace_length = (num_points * pulse_interval) / 1000
             logging.debug(f"trace_length(s): {trace_length} ms")
             send_warning()
+            print("------------------------")
             tracecontroller.set_parameters("m", 0)
             time.sleep(trace_length / 1000 * 1.5)
-            print("we made it this far")
             logging.debug("retrieving data")
             before_g = datetime.now().microsecond
+            print("------------------------")
             tracecontroller.set_parameters("g", 0)
             str_buffer = tracecontroller.get_trace_data(num_points=num_points - 1)
             after_g = (datetime.now().microsecond - before_g) / 1000
             print(f"receive data too {after_g} ms")
             logging.debug("saving data")
 
-            # we have a string buffer of our received data here
-            csv_fn = tracecontroller.save_buffer_to_csv(
-                wl=(str(meas_led_vis) + "_" + str(meas_led_ir)),
-                trace_buffer=str_buffer,
-                trace_num=0,
-                trace_note="testing",
-            )
-            print(
-                f"total time receiving and saving data was {(datetime.now().microsecond - before_g)/1000} ms"
-            )
-            df = pd.read_csv(csv_fn, delimiter=",", skiprows=5)
-            print(df.head())
-            print(df.tail())
+            if str_buffer != "":
+
+                # we have a string buffer of our received data here
+                csv_fn = tracecontroller.save_buffer_to_csv(
+                    wl=(str(meas_led_vis) + "_" + str(meas_led_ir)),
+                    trace_buffer=str_buffer,
+                    trace_num=0,
+                    trace_note="testing",
+                )
+                print(
+                    f"total time receiving and saving data was {(datetime.now().microsecond - before_g)/1000} ms"
+                )
+                df = pd.read_csv(csv_fn, delimiter=",", skiprows=5)
+                print(df.head())
+                print(df.tail())
+            else:
+                print('str_buffer == ""')
 
         logging.debug("done")
 
