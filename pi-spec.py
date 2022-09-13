@@ -527,13 +527,17 @@ def main(
 
             if str_buffer != "":
 
-                # we have a string buffer of our received data here
-                csv_fn = tracecontroller.save_buffer_to_csv(
-                    wl=(str(meas_led_vis) + "_" + str(meas_led_ir)),
-                    trace_buffer=str_buffer,
-                    trace_num=0,
-                    trace_note="testing",
-                )
+                try:
+                    # we have a string buffer of our received data here
+                    csv_fn = tracecontroller.save_buffer_to_csv(
+                        wl=(str(meas_led_vis) + "_" + str(meas_led_ir)),
+                        trace_buffer=str_buffer,
+                        trace_num=0,
+                        trace_note="testing",
+                    )
+                except: 
+                    raise Exception("Could not write data")
+                    
                 print(
                     f"total time receiving and saving data was {(datetime.now().microsecond - before_g)/1000} ms"
                 )
@@ -579,7 +583,7 @@ if __name__ == "__main__":
         "-meas_led_ir",
         help="meas_led_ir array number, default=5 (830nm)",
         type=int,
-        default=5,
+        default=0,
     )
 
     parser.add_argument(

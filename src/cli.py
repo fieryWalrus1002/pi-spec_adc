@@ -66,16 +66,15 @@ class PispecInterface:
 
         self.tracecontroller.set_parameters(params)
 
-        print(f"params: {self.tracecontroller.get_param_string()}")
+        print(f"params: {self.tracecontroller.get_parameters()}")
 
-    def run_trace(
-        self
-    ):
+    def run_trace(self):
+        str_buffer = ""
         trace_length = (self.params.num_points * self.params.pulse_interval) / 1000
         logging.debug(f"trace_length(s): {trace_length} ms")
         self.send_warning()
         print("------------------------")
-        trace_run = self.tracecontroller.set_parameters("m0;")
+        trace_run = self.tracecontroller.set_parameters("q1;m0;")
         time.sleep(trace_length / 1000 * 1.5)
         if trace_run == 1:
             before_g = datetime.now().microsecond
@@ -100,9 +99,13 @@ class PispecInterface:
                 f"total time receiving and saving data was {(datetime.now().microsecond - before_g)/1000} ms"
             )
             print(f"saved data as {csv_fn}")
+            return csv_fn
 
-            return pd.read_csv(csv_fn, delimiter=",")
+            # return pd.read_csv(csv_fn, delimiter=",")
+        else:
+            return 1
 
+            # return pd.DataFrame()
 
 
 if __name__ == "__main__":

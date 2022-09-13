@@ -162,7 +162,7 @@ class TraceController:
     def get_parameters(self):
         self.set_parameters("d0")
         time.sleep(0.25)
-        params = self.receive_data(timeout=0.001)
+        params = self.receive_data()
         return params
 
     def set_parameters(self, cmd_input="", value=0):
@@ -238,11 +238,14 @@ class TraceController:
         # make the directory if it doesn't exist already
         Path("./export/").mkdir(parents=True, exist_ok=True)
 
+        # how many columns are there?
+        data_col_count = len(trace_buffer.split("\n")[5]) - 2
+        header_row = ["num", "time_us"] + ["val{i}" for i in range(data_col_count)]
         # write the data for this trace to disk
         with open(trace_filename, "w") as f:
             writer = csv.writer(f, delimiter=",")
             # writer.writerow(["trace_params", trace_params.parameter_string])
-            writer.writerow(["num", "time_us", "value"])
+            writer.writerow(header_row)
 
             for row in trace_buffer.split("\n"):
                 # print(row.split(","))
