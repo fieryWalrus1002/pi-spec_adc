@@ -47,10 +47,10 @@ class PispecInterface:
     def get_data(self):
         return self.data
 
-    def wait_for_response(self, device):
-        recv = ""
+    def wait_for_response(self):
+        recv = "hey"
         while ";" not in recv:
-            recv = device.receive_data()
+            recv = self.tracecontroller.receive_data()
         return recv
 
     def send_warning(self,):
@@ -59,53 +59,71 @@ class PispecInterface:
             print(3 - i)
             time.sleep(1)
 
+    
+
     def setup_trace(
         self, params: TraceParams(),
     ):
-        data = ""
+        """ setup the tracecontroller with provided trace parameters, and return
+        the paramaters for verification"""
+        self.params = params
 
-        self.tracecontroller.set_parameters(params)
+        self.tracecontroller.set_parameters(params.param_string)
 
-        print(f"params: {self.tracecontroller.get_parameters()}")
+        return self.tracecontroller.get_parameters()
 
     def run_trace(self):
-        str_buffer = ""
-        trace_length = (self.params.num_points * self.params.pulse_interval) / 1000
-        logging.debug(f"trace_length(s): {trace_length} ms")
-        self.send_warning()
-        print("------------------------")
-        trace_run = self.tracecontroller.set_parameters("q1;m0;")
-        time.sleep(trace_length / 1000 * 1.5)
-        if trace_run == 1:
-            before_g = datetime.now().microsecond
-            print("------------------------")
-            self.tracecontroller.set_parameters("g0;")
-            str_buffer = self.tracecontroller.get_trace_data(
-                num_points=self.params.num_points - 1
-            )
-            after_g = (datetime.now().microsecond - before_g) / 1000
-            print(f"receive data too {after_g} ms")
-            logging.debug("saving data")
+        
+        trace_length_us = (self.params.num_points * (self.params.pulse_interval + self.params.pulse_length))
+        print(f"trace_length_us: {trace_length_us}, in seconds: {trace_length_us * 1e-6}")
+        # self.send_warning()
+        # print("------------------------")\str_buffer = self.tracecontroller.receive_data(
+        flushed = self.tracecontroller.flush_buffer()
+        
+        before_g = datetime.now()
+      
+        self.tracecontroller.set_parameters("m0")
+        
+        # wait for the trace to finish, or at least get near finishing
+        sleep_time = trace_length_us * 1e-6 # convert usseconds to seconds
+        time.sleep(sleep_time)
 
-        if str_buffer != "":
-            # we have a string buffer of our received data here
-            csv_fn = self.tracecontroller.save_buffer_to_csv(
-                wl=(str(self.params.meas_led_vis) + "_" + str(self.params.meas_led_ir)),
-                trace_buffer=str_buffer,
-                trace_num=0,
-                trace_note="trace_note",
-            )
-            print(
-                f"total time receiving and saving data was {(datetime.now().microsecond - before_g)/1000} ms"
-            )
-            print(f"saved data as {csv_fn}")
-            return csv_fn
+        print(f"trace_time: {sleep_time} s")
+        # print(datetime.now().second)
+        # time.sleep(sleep_time)
+        # print(datetime.now().second)
+        self.tracecontroller.set_parameters("g0")
 
-            # return pd.read_csv(csv_fn, delimiter=",")
-        else:
-            return 1
+        str_buffer = self.tracecontroller.get_trace_data()
 
-            # return pd.DataFrame()
+        # str_buffer = self.tracecontroller.get_trace_data()
+
+        after_g = (datetime.now() - before_g)
+
+        print(f"trace_begun to data received: {after_g}")
+
+        logging.debug("saving data")
+
+        return str_buffer
+        # if str_buffer != "":
+        #     # we have a string buffer of our received data here
+        #     csv_fn = self.tracecontroller.save_buffer_to_csv(
+        #         wl=(str(self.params.meas_led_vis) + "_" + str(self.params.meas_led_ir)),
+        #         trace_buffer=str_buffer,
+        #         trace_num=0,
+        #         trace_note="trace_note",
+        #     )
+        #     print(
+        #         f"total time receiving and saving data was {(datetime.now().microsecond - before_g)/1000} ms"
+        #     )
+        #     print(f"saved data as {csv_fn}")
+        #     return csv_fn
+
+        # return pd.read_csv(csv_fn, delimiter=",")
+        # else:
+        #     return 1
+
+        # return pd.DataFrame()
 
 
 if __name__ == "__main__":

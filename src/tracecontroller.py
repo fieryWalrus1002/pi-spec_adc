@@ -121,6 +121,10 @@ class TraceController:
         self.data = []
         logging.debug("and now we're done with init")
 
+    def flush_buffer(self) -> bool:
+        self.ser.flush()
+        return True
+
     def connect_ser(self, baud_rate, timeout):
         """connects to microcontroller device with serial, returns connection to device
         3-21-22 now using Teensy 4.1
@@ -162,7 +166,7 @@ class TraceController:
     def get_parameters(self):
         self.set_parameters("d0")
         time.sleep(0.25)
-        params = self.receive_data()
+        params = self.ser.readline().decode("utf-8")
         return params
 
     def set_parameters(self, cmd_input="", value=0):
@@ -173,25 +177,19 @@ class TraceController:
         recv = self.ser.readline()
         return recv
 
-    def receive_data(self) -> list:
-        """waits for data to be received from the ADC, then returns it as a list"""
-        strbuf = ""
+    def receive_data(self):
+        """waits for data to be received from the ADC, then returns it"""
+        recv_data = ""
+        # self.set_parameters("g0")
 
         while self.ser.in_waiting > 0:
-            recv = self.ser.read_until()
+            recv_data += self.ser.read_all().decode("utf-8")
 
-        return strbuf
+        return recv_data
 
-    def decode_data(self, buffer):
-        strbuf = ""
-        for i in buffer:
-            strbuf += i.decode()
-        return strbuf
-
-    def get_trace_data(self, num_points):
+    def get_trace_data(self):
         # // returns string buffer of received bytes
         buffer = ""
-        recv_timepoint = 0
         timeout_cnt = 0
         recv = bytearray()
         recv_state = True
@@ -204,7 +202,7 @@ class TraceController:
                 except UnicodeDecodeError:
                     logging.debug("unicode error")
 
-                if len(decoded) > 96:
+                if len(decoded) > 1:
                     buffer += decoded
                     timeout_cnt = 0
                     recv = bytearray()
@@ -213,8 +211,9 @@ class TraceController:
 
             if timeout_cnt > 10000:
                 logging.debug("timed out")
+                
                 return buffer
-
+    
         return buffer
 
     def save_buffer_to_csv(self, wl, trace_buffer, trace_num, trace_note):
