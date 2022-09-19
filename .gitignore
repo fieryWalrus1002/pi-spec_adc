@@ -180,6 +180,8 @@ venv/Lib/site-packages
 # RStudio files
 .Rproj.user/
 
+/spec/
+
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf

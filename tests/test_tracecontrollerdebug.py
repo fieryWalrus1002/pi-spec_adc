@@ -5,6 +5,7 @@ sys.path.append("D:/projects/pi-spec-cli/src")
 
 from tracecontroller import TraceControllerDebug
 
+
 class TestTracecontrollerDebug(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -27,5 +28,6 @@ class TestTracecontrollerDebug(unittest.TestCase):
         new_param_string = self.tracecontroller.get_param_string()
         expected_string = "r: 0, v: 1, n: 2, z: 3, i: 4, p: 5, e: 6, w: 0, x: 0, y: 0,"
         self.assertEqual(expected_string.strip(" "), new_param_string.strip(" "))
+
 
 unittest.main()

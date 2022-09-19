@@ -10,7 +10,7 @@ import pandas as pd
 
 
 class DummyData:
-    """ provides formatted lines of a previous datafile to mimic the ADC output """
+    """provides formatted lines of a previous datafile to mimic the ADC output"""
 
     def __init__(self):
         self.df = pd.read_csv(
@@ -53,7 +53,7 @@ class TraceControllerDebug:
         return self.param_string
 
     def set_parameters(self, param_string):
-        """ takes the command input string and parses it to set self.param values """
+        """takes the command input string and parses it to set self.param values"""
         self.param_string = param_string
         return 1
 
@@ -68,8 +68,8 @@ class TraceControllerDebug:
         strbuf = "0, 0, 0, 0"
 
     def get_trace_data(self, num_points):
-        """ loads an old data file and then sends out line by line as if it was 
-        imported data from the ADC """
+        """loads an old data file and then sends out line by line as if it was
+        imported data from the ADC"""
 
         buffer = ""
 
@@ -79,7 +79,7 @@ class TraceControllerDebug:
         return buffer
 
     def save_buffer_to_csv(self, wl, trace_buffer, trace_num, trace_note):
-        """ give wavelength, str buffer of data, trace num, and note to save to csv """
+        """give wavelength, str buffer of data, trace num, and note to save to csv"""
 
         trace_date = time.strftime("%d%m%y")
         trace_time = time.strftime("%H%M")
@@ -124,6 +124,14 @@ class TraceController:
     def flush_buffer(self) -> bool:
         self.ser.flush()
         return True
+    
+    def switch_pulser_power(self, power: bool) -> str:
+        if power:
+            self.set_parameters("q1")
+            return "power_on"
+        else:
+            self.set_parameters("q0")
+            return "power_off"
 
     def connect_ser(self, baud_rate, timeout):
         """connects to microcontroller device with serial, returns connection to device
@@ -132,7 +140,7 @@ class TraceController:
         Product: USB Serial
         Manufacturer: Teensyduino
         SerialNumber: 10167240
-                
+
         Was a chipkit MX3 from Digilent @ ttyUSB0, displays as:
         FT232R USB UART - FT232R USB UART ttyUSB0 /dev/ttyUSB0 1027 24577
         """
@@ -211,45 +219,19 @@ class TraceController:
 
             if timeout_cnt > 10000:
                 logging.debug("timed out")
-                
+
                 return buffer
-    
+
         return buffer
 
-    def save_buffer_to_csv(self, wl, trace_buffer, trace_num, trace_note):
-        """ give wavelength, str buffer of data, trace num, and note to save to csv """
-        trace_date = time.strftime("%d%m%y")
-        trace_time = time.strftime("%H%M")
+   
 
-        export_path = (
-            "./export/"
-            + trace_date
-            + "_"
-            + trace_time
-            + "_"
-            + wl
-            + "_"
-            + trace_note
-            + str(trace_num)
-        )
-        trace_filename = export_path + ".csv"
-
-        # make the directory if it doesn't exist already
-        Path("./export/").mkdir(parents=True, exist_ok=True)
-
-        # how many columns are there?
-        data_col_count = len(trace_buffer.split("\n")[5]) - 2
-        header_row = ["num", "time_us"] + ["val{i}" for i in range(data_col_count)]
-        # write the data for this trace to disk
-        with open(trace_filename, "w") as f:
-            writer = csv.writer(f, delimiter=",")
-            # writer.writerow(["trace_params", trace_params.parameter_string])
-            writer.writerow(header_row)
-
-            for row in trace_buffer.split("\n"):
-                # print(row.split(","))
-                writer.writerow(row.split(","))
-        f.close()
-        logging.debug(trace_filename)
-
-        return trace_filename
+    def modify_actinic(self, intensity: int):
+        """ set the current actinic intensity
+            not used during traces, but for in between steps
+            and pre-illumination
+        """
+        if intensity > 0:
+            self.set_parameters(f'a{intensity}')
+        else: 
+            self.set_parameters(f'a0')

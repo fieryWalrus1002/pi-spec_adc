@@ -1,0 +1,710 @@
+[    0.000000] Booting Linux on physical CPU 0x0
+[    0.000000] Linux version 5.10.63-v7l+ (dom@buildbot) (arm-linux-gnueabihf-gcc-8 (Ubuntu/Linaro 8.4.0-3ubuntu1) 8.4.0, GNU ld (GNU Binutils for Ubuntu) 2.34) #1488 SMP Thu Nov 18 16:15:28 GMT 2021
+[    0.000000] CPU: ARMv7 Processor [410fd083] revision 3 (ARMv7), cr=30c5383d
+[    0.000000] CPU: div instructions available: patching division code
+[    0.000000] CPU: PIPT / VIPT nonaliasing data cache, PIPT instruction cache
+[    0.000000] OF: fdt: Machine model: Raspberry Pi 4 Model B Rev 1.4
+[    0.000000] random: fast init done
+[    0.000000] Memory policy: Data cache writealloc
+[    0.000000] Reserved memory: created CMA memory pool at 0x000000001ac00000, size 320 MiB
+[    0.000000] OF: reserved mem: initialized node linux,cma, compatible id shared-dma-pool
+[    0.000000] Zone ranges:
+[    0.000000]   DMA      [mem 0x0000000000000000-0x000000002fffffff]
+[    0.000000]   Normal   empty
+[    0.000000]   HighMem  [mem 0x0000000030000000-0x00000001ffffffff]
+[    0.000000] Movable zone start for each node
+[    0.000000] Early memory node ranges
+[    0.000000]   node   0: [mem 0x0000000000000000-0x000000003b3fffff]
+[    0.000000]   node   0: [mem 0x0000000040000000-0x00000000fbffffff]
+[    0.000000]   node   0: [mem 0x0000000100000000-0x00000001ffffffff]
+[    0.000000] Initmem setup node 0 [mem 0x0000000000000000-0x00000001ffffffff]
+[    0.000000] On node 0 totalpages: 2061312
+[    0.000000]   DMA zone: 1728 pages used for memmap
+[    0.000000]   DMA zone: 0 pages reserved
+[    0.000000]   DMA zone: 196608 pages, LIFO batch:63
+[    0.000000]   HighMem zone: 1864704 pages, LIFO batch:63
+[    0.000000] percpu: Embedded 20 pages/cpu s50828 r8192 d22900 u81920
+[    0.000000] pcpu-alloc: s50828 r8192 d22900 u81920 alloc=20*4096
+[    0.000000] pcpu-alloc: [0] 0 [0] 1 [0] 2 [0] 3 
+[    0.000000] Built 1 zonelists, mobility grouping on.  Total pages: 2059584
+[    0.000000] Kernel command line: coherent_pool=1M 8250.nr_uarts=0 snd_bcm2835.enable_compat_alsa=0 snd_bcm2835.enable_hdmi=1 video=HDMI-A-1:1920x1080M@60 smsc95xx.macaddr=DC:A6:32:E8:28:A0 vc_mem.mem_base=0x3ec00000 vc_mem.mem_size=0x40000000  console=ttyS0,115200 console=tty1 root=PARTUUID=39a7d80b-02 rootfstype=ext4 fsck.repair=yes rootwait quiet splash plymouth.ignore-serial-consoles
+[    0.000000] Dentry cache hash table entries: 131072 (order: 7, 524288 bytes, linear)
+[    0.000000] Inode-cache hash table entries: 65536 (order: 6, 262144 bytes, linear)
+[    0.000000] mem auto-init: stack:off, heap alloc:off, heap free:off
+[    0.000000] software IO TLB: mapped [mem 0x0000000012400000-0x0000000016400000] (64MB)
+[    0.000000] Memory: 7758572K/8245248K available (10240K kernel code, 1364K rwdata, 3192K rodata, 2048K init, 891K bss, 158996K reserved, 327680K cma-reserved, 7458816K highmem)
+[    0.000000] SLUB: HWalign=64, Order=0-3, MinObjects=0, CPUs=4, Nodes=1
+[    0.000000] ftrace: allocating 34315 entries in 68 pages
+[    0.000000] ftrace: allocated 68 pages with 2 groups
+[    0.000000] rcu: Hierarchical RCU implementation.
+[    0.000000] 	Rude variant of Tasks RCU enabled.
+[    0.000000] 	Tracing variant of Tasks RCU enabled.
+[    0.000000] rcu: RCU calculated value of scheduler-enlistment delay is 10 jiffies.
+[    0.000000] NR_IRQS: 16, nr_irqs: 16, preallocated irqs: 16
+[    0.000000] GIC: Using split EOI/Deactivate mode
+[    0.000000] irq_brcmstb_l2: registered L2 intc (/soc/interrupt-controller@7ef00100, parent irq: 25)
+[    0.000000] random: get_random_bytes called from start_kernel+0x3c8/0x59c with crng_init=1
+[    0.000008] sched_clock: 32 bits at 1000kHz, resolution 1000ns, wraps every 2147483647500ns
+[    0.000026] clocksource: timer: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 1911260446275 ns
+[    0.000085] bcm2835: system timer (irq = 26)
+[    0.000735] arch_timer: cp15 timer(s) running at 54.00MHz (phys).
+[    0.000754] clocksource: arch_sys_counter: mask: 0xffffffffffffff max_cycles: 0xc743ce346, max_idle_ns: 440795203123 ns
+[    0.000773] sched_clock: 56 bits at 54MHz, resolution 18ns, wraps every 4398046511102ns
+[    0.000788] Switching to timer-based delay loop, resolution 18ns
+[    0.001056] Console: colour dummy device 80x30
+[    0.001134] printk: console [tty1] enabled
+[    0.001191] Calibrating delay loop (skipped), value calculated using timer frequency.. 108.00 BogoMIPS (lpj=540000)
+[    0.001223] pid_max: default: 32768 minimum: 301
+[    0.001391] LSM: Security Framework initializing
+[    0.001589] Mount-cache hash table entries: 2048 (order: 1, 8192 bytes, linear)
+[    0.001615] Mountpoint-cache hash table entries: 2048 (order: 1, 8192 bytes, linear)
+[    0.003160] cgroup: Disabling memory control group subsystem
+[    0.003403] CPU: Testing write buffer coherency: ok
+[    0.003895] CPU0: thread -1, cpu 0, socket 0, mpidr 80000000
+[    0.005151] Setting up static identity map for 0x200000 - 0x20003c
+[    0.005357] rcu: Hierarchical SRCU implementation.
+[    0.006328] smp: Bringing up secondary CPUs ...
+[    0.007616] CPU1: thread -1, cpu 1, socket 0, mpidr 80000001
+[    0.009038] CPU2: thread -1, cpu 2, socket 0, mpidr 80000002
+[    0.010406] CPU3: thread -1, cpu 3, socket 0, mpidr 80000003
+[    0.010566] smp: Brought up 1 node, 4 CPUs
+[    0.010587] SMP: Total of 4 processors activated (432.00 BogoMIPS).
+[    0.010603] CPU: All CPU(s) started in HYP mode.
+[    0.010669] CPU: Virtualization extensions available.
+[    0.011617] devtmpfs: initialized
+[    0.026307] VFP support v0.3: implementor 41 architecture 3 part 40 variant 8 rev 0
+[    0.026522] clocksource: jiffies: mask: 0xffffffff max_cycles: 0xffffffff, max_idle_ns: 19112604462750000 ns
+[    0.026555] futex hash table entries: 1024 (order: 4, 65536 bytes, linear)
+[    0.035066] pinctrl core: initialized pinctrl subsystem
+[    0.036193] NET: Registered protocol family 16
+[    0.040501] DMA: preallocated 1024 KiB pool for atomic coherent allocations
+[    0.041361] audit: initializing netlink subsys (disabled)
+[    0.041633] audit: type=2000 audit(0.040:1): state=initialized audit_enabled=0 res=1
+[    0.042229] thermal_sys: Registered thermal governor 'step_wise'
+[    0.043008] hw-breakpoint: found 5 (+1 reserved) breakpoint and 4 watchpoint registers.
+[    0.043026] hw-breakpoint: maximum watchpoint size is 8 bytes.
+[    0.043473] Serial: AMBA PL011 UART driver
+[    0.087194] bcm2835-mbox fe00b880.mailbox: mailbox enabled
+[    0.100880] raspberrypi-firmware soc:firmware: Attached to firmware from 2021-11-18T16:16:49, variant start
+[    0.110890] raspberrypi-firmware soc:firmware: Firmware hash is d9b293558b4cef6aabedcc53c178e7604de90788
+[    0.152111] Kprobes globally optimized
+[    0.157399] bcm2835-dma fe007000.dma: DMA legacy API manager, dmachans=0x1
+[    0.161892] vgaarb: loaded
+[    0.162356] SCSI subsystem initialized
+[    0.162589] usbcore: registered new interface driver usbfs
+[    0.162649] usbcore: registered new interface driver hub
+[    0.162720] usbcore: registered new device driver usb
+[    0.163128] usb_phy_generic phy: supply vcc not found, using dummy regulator
+[    0.165220] clocksource: Switched to clocksource arch_sys_counter
+[    1.125624] VFS: Disk quotas dquot_6.6.0
+[    1.125728] VFS: Dquot-cache hash table entries: 1024 (order 0, 4096 bytes)
+[    1.125895] FS-Cache: Loaded
+[    1.126107] CacheFiles: Loaded
+[    1.127270] simple-framebuffer 3e402000.framebuffer: framebuffer at 0x3e402000, 0x7f8000 bytes, mapped to 0x(ptrval)
+[    1.127292] simple-framebuffer 3e402000.framebuffer: format=a8r8g8b8, mode=1920x1080x32, linelength=7680
+[    1.127800] Console: switching to colour frame buffer device 240x67
+[    1.138623] simple-framebuffer 3e402000.framebuffer: fb0: simplefb registered!
+[    1.148855] NET: Registered protocol family 2
+[    1.149125] IP idents hash table entries: 16384 (order: 5, 131072 bytes, linear)
+[    1.150474] tcp_listen_portaddr_hash hash table entries: 512 (order: 0, 6144 bytes, linear)
+[    1.150520] TCP established hash table entries: 8192 (order: 3, 32768 bytes, linear)
+[    1.150686] TCP bind hash table entries: 8192 (order: 4, 65536 bytes, linear)
+[    1.150763] TCP: Hash tables configured (established 8192 bind 8192)
+[    1.150944] UDP hash table entries: 512 (order: 2, 16384 bytes, linear)
+[    1.150982] UDP-Lite hash table entries: 512 (order: 2, 16384 bytes, linear)
+[    1.151671] NET: Registered protocol family 1
+[    1.152440] RPC: Registered named UNIX socket transport module.
+[    1.152456] RPC: Registered udp transport module.
+[    1.152471] RPC: Registered tcp transport module.
+[    1.152487] RPC: Registered tcp NFSv4.1 backchannel transport module.
+[    1.152514] PCI: CLS 0 bytes, default 64
+[    1.156065] Initialise system trusted keyrings
+[    1.156316] workingset: timestamp_bits=14 max_order=21 bucket_order=7
+[    1.164747] zbud: loaded
+[    1.166616] FS-Cache: Netfs 'nfs' registered for caching
+[    1.167377] NFS: Registering the id_resolver key type
+[    1.167429] Key type id_resolver registered
+[    1.167444] Key type id_legacy registered
+[    1.167590] nfs4filelayout_init: NFSv4 File Layout Driver Registering...
+[    1.167607] nfs4flexfilelayout_init: NFSv4 Flexfile Layout Driver Registering...
+[    1.168648] Key type asymmetric registered
+[    1.168665] Asymmetric key parser 'x509' registered
+[    1.168859] bounce: pool size: 64 pages
+[    1.168904] Block layer SCSI generic (bsg) driver version 0.4 loaded (major 249)
+[    1.169120] io scheduler mq-deadline registered
+[    1.169136] io scheduler kyber registered
+[    1.174030] brcm-pcie fd500000.pcie: host bridge /scb/pcie@7d500000 ranges:
+[    1.174063] brcm-pcie fd500000.pcie:   No bus range found for /scb/pcie@7d500000, using [bus 00-ff]
+[    1.174156] brcm-pcie fd500000.pcie:      MEM 0x0600000000..0x063fffffff -> 0x00c0000000
+[    1.174245] brcm-pcie fd500000.pcie:   IB MEM 0x0000000000..0x00bfffffff -> 0x0400000000
+[    1.257328] brcm-pcie fd500000.pcie: link up, 5.0 GT/s PCIe x1 (SSC)
+[    1.257727] brcm-pcie fd500000.pcie: PCI host bridge to bus 0000:00
+[    1.257748] pci_bus 0000:00: root bus resource [bus 00-ff]
+[    1.257770] pci_bus 0000:00: root bus resource [mem 0x600000000-0x63fffffff] (bus address [0xc0000000-0xffffffff])
+[    1.257863] pci 0000:00:00.0: [14e4:2711] type 01 class 0x060400
+[    1.258113] pci 0000:00:00.0: PME# supported from D0 D3hot
+[    1.261623] PCI: bus0: Fast back to back transfers disabled
+[    1.261962] pci 0000:01:00.0: [1106:3483] type 00 class 0x0c0330
+[    1.262092] pci 0000:01:00.0: reg 0x10: [mem 0x00000000-0x00000fff 64bit]
+[    1.262529] pci 0000:01:00.0: PME# supported from D0 D3hot
+[    1.266024] PCI: bus1: Fast back to back transfers disabled
+[    1.266091] pci 0000:00:00.0: BAR 8: assigned [mem 0x600000000-0x6000fffff]
+[    1.266117] pci 0000:01:00.0: BAR 0: assigned [mem 0x600000000-0x600000fff 64bit]
+[    1.266202] pci 0000:00:00.0: PCI bridge to [bus 01]
+[    1.266227] pci 0000:00:00.0:   bridge window [mem 0x600000000-0x6000fffff]
+[    1.266669] pcieport 0000:00:00.0: enabling device (0140 -> 0142)
+[    1.266897] pcieport 0000:00:00.0: PME: Signaling with IRQ 80
+[    1.279873] iproc-rng200 fe104000.rng: hwrng registered
+[    1.280251] vc-mem: phys_addr:0x00000000 mem_base=0x3ec00000 mem_size:0x40000000(1024 MiB)
+[    1.281214] gpiomem-bcm2835 fe200000.gpiomem: Initialised: Registers at 0xfe200000
+[    1.293874] brd: module loaded
+[    1.306717] loop: module loaded
+[    1.308665] Loading iSCSI transport class v2.0-870.
+[    1.311980] libphy: Fixed MDIO Bus: probed
+[    1.313873] bcmgenet fd580000.ethernet: GENET 5.0 EPHY: 0x0000
+[    1.325254] libphy: bcmgenet MII bus: probed
+[    1.415371] unimac-mdio unimac-mdio.-19: Broadcom UniMAC MDIO bus
+[    1.416632] usbcore: registered new interface driver r8152
+[    1.416702] usbcore: registered new interface driver lan78xx
+[    1.416766] usbcore: registered new interface driver smsc95xx
+[    1.468413] xhci_hcd 0000:01:00.0: xHCI Host Controller
+[    1.468451] xhci_hcd 0000:01:00.0: new USB bus registered, assigned bus number 1
+[    1.471768] xhci_hcd 0000:01:00.0: hcc params 0x002841eb hci version 0x100 quirks 0x0000060000000890
+[    1.473128] usb usb1: New USB device found, idVendor=1d6b, idProduct=0002, bcdDevice= 5.10
+[    1.473148] usb usb1: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    1.473165] usb usb1: Product: xHCI Host Controller
+[    1.473182] usb usb1: Manufacturer: Linux 5.10.63-v7l+ xhci-hcd
+[    1.473200] usb usb1: SerialNumber: 0000:01:00.0
+[    1.473957] hub 1-0:1.0: USB hub found
+[    1.474057] hub 1-0:1.0: 1 port detected
+[    1.474764] xhci_hcd 0000:01:00.0: xHCI Host Controller
+[    1.474792] xhci_hcd 0000:01:00.0: new USB bus registered, assigned bus number 2
+[    1.474818] xhci_hcd 0000:01:00.0: Host supports USB 3.0 SuperSpeed
+[    1.475364] usb usb2: New USB device found, idVendor=1d6b, idProduct=0003, bcdDevice= 5.10
+[    1.475383] usb usb2: New USB device strings: Mfr=3, Product=2, SerialNumber=1
+[    1.475400] usb usb2: Product: xHCI Host Controller
+[    1.475416] usb usb2: Manufacturer: Linux 5.10.63-v7l+ xhci-hcd
+[    1.475432] usb usb2: SerialNumber: 0000:01:00.0
+[    1.476163] hub 2-0:1.0: USB hub found
+[    1.476250] hub 2-0:1.0: 4 ports detected
+[    1.478057] dwc_otg: version 3.00a 10-AUG-2012 (platform bus)
+[    1.478430] dwc_otg: FIQ enabled
+[    1.478446] dwc_otg: NAK holdoff enabled
+[    1.478461] dwc_otg: FIQ split-transaction FSM enabled
+[    1.478478] Module dwc_common_port init
+[    1.478983] usbcore: registered new interface driver uas
+[    1.479095] usbcore: registered new interface driver usb-storage
+[    1.479303] mousedev: PS/2 mouse device common for all mice
+[    1.481184] bcm2835-wdt bcm2835-wdt: Broadcom BCM2835 watchdog timer
+[    1.485367] sdhci: Secure Digital Host Controller Interface driver
+[    1.485382] sdhci: Copyright(c) Pierre Ossman
+[    1.486173] mmc-bcm2835 fe300000.mmcnr: could not get clk, deferring probe
+[    1.486893] sdhci-pltfm: SDHCI platform and OF driver helper
+[    1.491217] ledtrig-cpu: registered to indicate activity on CPUs
+[    1.491587] hid: raw HID events driver (C) Jiri Kosina
+[    1.491787] usbcore: registered new interface driver usbhid
+[    1.491802] usbhid: USB HID core driver
+[    1.498178] Initializing XFRM netlink socket
+[    1.498222] NET: Registered protocol family 17
+[    1.498363] Key type dns_resolver registered
+[    1.498808] Registering SWP/SWPB emulation handler
+[    1.498994] registered taskstats version 1
+[    1.499023] Loading compiled-in X.509 certificates
+[    1.500213] Key type ._fscrypt registered
+[    1.500230] Key type .fscrypt registered
+[    1.500245] Key type fscrypt-provisioning registered
+[    1.512524] uart-pl011 fe201000.serial: there is not valid maps for state default
+[    1.512836] uart-pl011 fe201000.serial: cts_event_workaround enabled
+[    1.512914] fe201000.serial: ttyAMA0 at MMIO 0xfe201000 (irq = 38, base_baud = 0) is a PL011 rev2
+[    1.520331] bcm2835-power bcm2835-power: Broadcom BCM2835 power domains driver
+[    1.521428] mmc-bcm2835 fe300000.mmcnr: mmc_debug:0 mmc_debug2:0
+[    1.521445] mmc-bcm2835 fe300000.mmcnr: DMA channel allocated
+[    1.548920] of_cfs_init
+[    1.549046] of_cfs_init: OK
+[    1.569156] mmc1: queuing unknown CIS tuple 0x80 (2 bytes)
+[    1.570867] mmc1: queuing unknown CIS tuple 0x80 (3 bytes)
+[    1.572574] mmc1: queuing unknown CIS tuple 0x80 (3 bytes)
+[    1.575625] mmc1: queuing unknown CIS tuple 0x80 (7 bytes)
+[    1.577332] mmc1: queuing unknown CIS tuple 0x80 (3 bytes)
+[    1.590493] mmc0: SDHCI controller on fe340000.mmc [fe340000.mmc] using ADMA
+[    1.592167] Waiting for root device PARTUUID=39a7d80b-02...
+[    1.645983] mmc1: new high speed SDIO card at address 0001
+[    1.666592] usb 2-1: new SuperSpeed Gen 1 USB device number 2 using xhci_hcd
+[    1.688914] mmc0: new ultra high speed DDR50 SDXC card at address 0001
+[    1.689903] mmcblk0: mmc0:0001 EC2QT 59.6 GiB
+[    1.691822]  mmcblk0: p1 p2
+[    1.702600] usb 2-1: New USB device found, idVendor=05e3, idProduct=0626, bcdDevice= 6.55
+[    1.702621] usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[    1.702639] usb 2-1: Product: USB3.1 Hub
+[    1.702656] usb 2-1: Manufacturer: GenesysLogic
+[    1.706510] hub 2-1:1.0: USB hub found
+[    1.706935] hub 2-1:1.0: 4 ports detected
+[    1.747634] EXT4-fs (mmcblk0p2): mounted filesystem with ordered data mode. Opts: (null)
+[    1.747715] VFS: Mounted root (ext4 filesystem) readonly on device 179:2.
+[    1.748680] devtmpfs: mounted
+[    1.758734] Freeing unused kernel memory: 2048K
+[    1.805558] Run /sbin/init as init process
+[    1.805573]   with arguments:
+[    1.805587]     /sbin/init
+[    1.805602]     splash
+[    1.805616]   with environment:
+[    1.805630]     HOME=/
+[    1.805644]     TERM=linux
+[    1.845279] usb 1-1: new high-speed USB device number 2 using xhci_hcd
+[    2.027965] usb 1-1: New USB device found, idVendor=2109, idProduct=3431, bcdDevice= 4.21
+[    2.027989] usb 1-1: New USB device strings: Mfr=0, Product=1, SerialNumber=0
+[    2.028006] usb 1-1: Product: USB2.0 Hub
+[    2.030662] hub 1-1:1.0: USB hub found
+[    2.031004] hub 1-1:1.0: 4 ports detected
+[    2.159201] systemd[1]: System time before build time, advancing clock.
+[    2.265679] NET: Registered protocol family 10
+[    2.267180] Segment Routing with IPv6
+[    2.337326] systemd[1]: systemd 247.3-6+rpi1 running in system mode. (+PAM +AUDIT +SELINUX +IMA +APPARMOR +SMACK +SYSVINIT +UTMP +LIBCRYPTSETUP +GCRYPT +GNUTLS +ACL +XZ +LZ4 +ZSTD +SECCOMP +BLKID +ELFUTILS +KMOD +IDN2 -IDN +PCRE2 default-hierarchy=unified)
+[    2.338235] systemd[1]: Detected architecture arm.
+[    2.340642] systemd[1]: Set hostname to <pi-spec>.
+[    2.355293] usb 1-1.1: new high-speed USB device number 3 using xhci_hcd
+[    2.489256] usb 1-1.1: New USB device found, idVendor=05e3, idProduct=0610, bcdDevice= 6.55
+[    2.489280] usb 1-1.1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[    2.489299] usb 1-1.1: Product: USB2.1 Hub
+[    2.489317] usb 1-1.1: Manufacturer: GenesysLogic
+[    2.492417] hub 1-1.1:1.0: USB hub found
+[    2.492831] hub 1-1.1:1.0: 4 ports detected
+[    2.595282] usb 1-1.3: new full-speed USB device number 4 using xhci_hcd
+[    2.742743] usb 1-1.3: New USB device found, idVendor=0403, idProduct=6001, bcdDevice= 6.00
+[    2.742769] usb 1-1.3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[    2.742788] usb 1-1.3: Product: FT232R USB UART
+[    2.742805] usb 1-1.3: Manufacturer: FTDI
+[    2.742821] usb 1-1.3: SerialNumber: A60090B4
+[    2.845327] usb 1-1.1.1: new low-speed USB device number 5 using xhci_hcd
+[    3.005024] usb 1-1.1.1: New USB device found, idVendor=046d, idProduct=c31c, bcdDevice=49.00
+[    3.005050] usb 1-1.1.1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[    3.005069] usb 1-1.1.1: Product: USB Keyboard
+[    3.005086] usb 1-1.1.1: Manufacturer: Logitech
+[    3.022196] input: Logitech USB Keyboard as /devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.1/1-1.1.1/1-1.1.1:1.0/0003:046D:C31C.0001/input/input0
+[    3.084169] systemd[1]: /lib/systemd/system/plymouth-start.service:16: Unit configured to use KillMode=none. This is unsafe, as it disables systemd's process lifecycle management for the service. Please update your service to use a safer KillMode=, such as 'mixed' or 'control-group'. Support for KillMode=none is deprecated and will eventually be removed.
+[    3.086267] hid-generic 0003:046D:C31C.0001: input,hidraw0: USB HID v1.10 Keyboard [Logitech USB Keyboard] on usb-0000:01:00.0-1.1.1/input0
+[    3.095320] usb 1-1.4: new full-speed USB device number 6 using xhci_hcd
+[    3.096504] input: Logitech USB Keyboard as /devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.1/1-1.1.1/1-1.1.1:1.1/0003:046D:C31C.0002/input/input1
+[    3.143579] systemd[1]: /etc/systemd/system/teamviewerd.service:9: PIDFile= references a path below legacy directory /var/run/, updating /var/run/teamviewerd.pid → /run/teamviewerd.pid; please update the unit file accordingly.
+[    3.165714] hid-generic 0003:046D:C31C.0002: input,hidraw1: USB HID v1.10 Device [Logitech USB Keyboard] on usb-0000:01:00.0-1.1.1/input1
+[    3.234426] usb 1-1.4: New USB device found, idVendor=2886, idProduct=802f, bcdDevice= 1.04
+[    3.234448] usb 1-1.4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[    3.234466] usb 1-1.4: Product: Seeeduino XIAO
+[    3.234483] usb 1-1.4: Manufacturer: Seeed
+[    3.234499] usb 1-1.4: SerialNumber: 4669B92F50575230362E3120FF132C1F
+[    3.277430] systemd[1]: Queued start job for default target Graphical Interface.
+[    3.279312] random: systemd: uninitialized urandom read (16 bytes read)
+[    3.281931] systemd[1]: Created slice system-getty.slice.
+[    3.282353] random: systemd: uninitialized urandom read (16 bytes read)
+[    3.283393] systemd[1]: Created slice system-modprobe.slice.
+[    3.283516] random: systemd: uninitialized urandom read (16 bytes read)
+[    3.284470] systemd[1]: Created slice system-systemd\x2dfsck.slice.
+[    3.285963] systemd[1]: Created slice User and Session Slice.
+[    3.286554] systemd[1]: Started Forward Password Requests to Wall Directory Watch.
+[    3.287699] systemd[1]: Set up automount Arbitrary Executable File Formats File System Automount Point.
+[    3.288556] systemd[1]: Reached target Slices.
+[    3.288773] systemd[1]: Reached target Swap.
+[    3.289818] systemd[1]: Listening on Syslog Socket.
+[    3.290606] systemd[1]: Listening on fsck to fsckd communication Socket.
+[    3.291032] systemd[1]: Listening on initctl Compatibility Named Pipe.
+[    3.292203] systemd[1]: Listening on Journal Audit Socket.
+[    3.292994] systemd[1]: Listening on Journal Socket (/dev/log).
+[    3.294015] systemd[1]: Listening on Journal Socket.
+[    3.299469] systemd[1]: Listening on udev Control Socket.
+[    3.300372] systemd[1]: Listening on udev Kernel Socket.
+[    3.301295] systemd[1]: Condition check resulted in Huge Pages File System being skipped.
+[    3.306537] systemd[1]: Mounting POSIX Message Queue File System...
+[    3.312498] systemd[1]: Mounting RPC Pipe File System...
+[    3.319388] systemd[1]: Mounting Kernel Debug File System...
+[    3.326921] systemd[1]: Mounting Kernel Trace File System...
+[    3.327439] systemd[1]: Condition check resulted in Kernel Module supporting RPCSEC_GSS being skipped.
+[    3.339058] systemd[1]: Starting Restore / save the current clock...
+[    3.347945] systemd[1]: Starting Set the console keyboard layout...
+[    3.355136] systemd[1]: Starting Create list of static device nodes for the current kernel...
+[    3.363175] systemd[1]: Starting Load Kernel Module configfs...
+[    3.382152] systemd[1]: Starting Load Kernel Module drm...
+[    3.390347] systemd[1]: Starting Load Kernel Module fuse...
+[    3.397081] systemd[1]: Condition check resulted in Set Up Additional Binary Formats being skipped.
+[    3.405872] systemd[1]: Starting File System Check on Root Device...
+[    3.424143] systemd[1]: Starting Journal Service...
+[    3.446941] systemd[1]: Starting Load Kernel Modules...
+[    3.455182] systemd[1]: Starting Coldplug All udev Devices...
+[    3.472581] fuse: init (API version 7.32)
+[    3.490613] systemd[1]: Mounted POSIX Message Queue File System.
+[    3.491460] systemd[1]: Mounted RPC Pipe File System.
+[    3.492237] systemd[1]: Mounted Kernel Debug File System.
+[    3.493007] systemd[1]: Mounted Kernel Trace File System.
+[    3.495106] systemd[1]: Finished Restore / save the current clock.
+[    3.516804] systemd[1]: Finished Create list of static device nodes for the current kernel.
+[    3.520370] systemd[1]: modprobe@configfs.service: Succeeded.
+[    3.525461] systemd[1]: Finished Load Kernel Module configfs.
+[    3.527603] systemd[1]: modprobe@drm.service: Succeeded.
+[    3.529281] systemd[1]: Finished Load Kernel Module drm.
+[    3.531546] systemd[1]: modprobe@fuse.service: Succeeded.
+[    3.537389] systemd[1]: Finished Load Kernel Module fuse.
+[    3.551594] systemd[1]: Mounting FUSE Control File System...
+[    3.555115] i2c /dev entries driver
+[    3.566853] systemd[1]: Mounting Kernel Configuration File System...
+[    3.573333] systemd[1]: Started File System Check Daemon to report status.
+[    3.583390] systemd[1]: Finished Load Kernel Modules.
+[    3.591409] systemd[1]: Mounted FUSE Control File System.
+[    3.592240] systemd[1]: Mounted Kernel Configuration File System.
+[    3.600519] systemd[1]: Starting Apply Kernel Variables...
+[    3.659795] systemd[1]: Finished Apply Kernel Variables.
+[    3.759641] systemd[1]: Finished File System Check on Root Device.
+[    3.765810] systemd[1]: Starting Remount Root and Kernel File Systems...
+[    3.885047] systemd[1]: Finished Set the console keyboard layout.
+[    3.886902] systemd[1]: Started Journal Service.
+[    3.949305] EXT4-fs (mmcblk0p2): re-mounted. Opts: (null)
+[    4.014663] systemd-journald[135]: Received client request to flush runtime journal.
+[    4.050778] systemd-journald[135]: File /var/log/journal/35d09c9655174ff49ebaddb36eaea5b7/system.journal corrupted or uncleanly shut down, renaming and replacing.
+[    5.268243] rpivid-mem feb00000.hevc-decoder: rpivid-hevcmem initialised: Registers at 0xfeb00000 length 0x00010000
+[    5.274763] rpivid-mem feb10000.rpivid-local-intc: rpivid-intcmem initialised: Registers at 0xfeb10000 length 0x00001000
+[    5.285369] rpivid-mem feb20000.h264-decoder: rpivid-h264mem initialised: Registers at 0xfeb20000 length 0x00010000
+[    5.289660] rpivid-mem feb30000.vp9-decoder: rpivid-vp9mem initialised: Registers at 0xfeb30000 length 0x00010000
+[    5.575361] vc_sm_cma: module is from the staging directory, the quality is unknown, you have been warned.
+[    5.577706] bcm2835_vc_sm_cma_probe: Videocore shared memory driver
+[    5.577734] [vc_sm_connected_init]: start
+[    5.584071] snd_bcm2835: module is from the staging directory, the quality is unknown, you have been warned.
+[    5.595836] [vc_sm_connected_init]: installed successfully
+[    5.609391] bcm2835_audio bcm2835_audio: card created with 8 channels
+[    5.612743] mc: Linux media interface: v0.10
+[    5.651817] videodev: Linux video capture interface: v2.00
+[    5.679365] bcm2835_mmal_vchiq: module is from the staging directory, the quality is unknown, you have been warned.
+[    5.683356] bcm2835_mmal_vchiq: module is from the staging directory, the quality is unknown, you have been warned.
+[    5.695133] bcm2835_codec: module is from the staging directory, the quality is unknown, you have been warned.
+[    5.698223] bcm2835_isp: module is from the staging directory, the quality is unknown, you have been warned.
+[    5.706017] bcm2835-isp bcm2835-isp: Device node output[0] registered as /dev/video13
+[    5.706245] bcm2835-codec bcm2835-codec: Device registered as /dev/video10
+[    5.706304] bcm2835-codec bcm2835-codec: Loaded V4L2 decode
+[    5.706524] bcm2835-isp bcm2835-isp: Device node capture[0] registered as /dev/video14
+[    5.706977] bcm2835-isp bcm2835-isp: Device node capture[1] registered as /dev/video15
+[    5.708713] bcm2835-isp bcm2835-isp: Device node stats[2] registered as /dev/video16
+[    5.708750] bcm2835-isp bcm2835-isp: Register output node 0 with media controller
+[    5.708776] bcm2835-isp bcm2835-isp: Register capture node 1 with media controller
+[    5.708799] bcm2835-isp bcm2835-isp: Register capture node 2 with media controller
+[    5.708830] bcm2835-isp bcm2835-isp: Register capture node 3 with media controller
+[    5.709047] bcm2835-isp bcm2835-isp: Loaded V4L2 bcm2835-isp
+[    5.711486] bcm2835-codec bcm2835-codec: Device registered as /dev/video11
+[    5.711533] bcm2835-codec bcm2835-codec: Loaded V4L2 encode
+[    5.716050] bcm2835-codec bcm2835-codec: Device registered as /dev/video12
+[    5.716103] bcm2835-codec bcm2835-codec: Loaded V4L2 isp
+[    5.744882] bcm2835-codec bcm2835-codec: Device registered as /dev/video18
+[    5.744944] bcm2835-codec bcm2835-codec: Loaded V4L2 image_fx
+[    5.765911] checking generic (3e402000 7f8000) vs hw (0 ffffffffffffffff)
+[    5.765933] fb0: switching to vc4drmfb from simple
+[    5.766788] Console: switching to colour dummy device 80x30
+[    5.813326] vc4-drm gpu: bound fe400000.hvs (ops vc4_hvs_ops [vc4])
+[    5.915477] bcm2835_v4l2: module is from the staging directory, the quality is unknown, you have been warned.
+[    5.960109] brcmstb-i2c fef04500.i2c:  @97500hz registered in polling mode
+[    5.965957] vc4-drm gpu: bound fe400000.hvs (ops vc4_hvs_ops [vc4])
+[    5.967177] brcmstb-i2c fef09500.i2c:  @97500hz registered in polling mode
+[    5.976208] Registered IR keymap rc-cec
+[    5.976389] rc rc0: vc4 as /devices/platform/soc/fef00700.hdmi/rc/rc0
+[    5.976620] input: vc4 as /devices/platform/soc/fef00700.hdmi/rc/rc0/input2
+[    5.977551] vc4_hdmi fef00700.hdmi: Could not register sound card: -517
+[    6.115615] vc4-drm gpu: bound fe400000.hvs (ops vc4_hvs_ops [vc4])
+[    6.169549] Registered IR keymap rc-cec
+[    6.169749] rc rc0: vc4 as /devices/platform/soc/fef00700.hdmi/rc/rc0
+[    6.169974] input: vc4 as /devices/platform/soc/fef00700.hdmi/rc/rc0/input3
+[    6.171184] vc4_hdmi fef00700.hdmi: Could not register sound card: -517
+[    6.230971] cdc_acm 1-1.4:1.0: ttyACM0: USB ACM device
+[    6.235745] usbcore: registered new interface driver cdc_acm
+[    6.235764] cdc_acm: USB Abstract Control Model driver for USB modems and ISDN adapters
+[    6.273413] vc4-drm gpu: bound fe400000.hvs (ops vc4_hvs_ops [vc4])
+[    6.301726] Registered IR keymap rc-cec
+[    6.301953] rc rc0: vc4 as /devices/platform/soc/fef00700.hdmi/rc/rc0
+[    6.302198] input: vc4 as /devices/platform/soc/fef00700.hdmi/rc/rc0/input4
+[    6.303148] vc4_hdmi fef00700.hdmi: Could not register sound card: -517
+[    6.317121] [drm] Initialized v3d 1.0.0 20180419 for fec00000.v3d on minor 1
+[    6.317661] cfg80211: Loading compiled-in X.509 certificates for regulatory database
+[    6.403710] vc4-drm gpu: bound fe400000.hvs (ops vc4_hvs_ops [vc4])
+[    6.429694] Registered IR keymap rc-cec
+[    6.429887] rc rc0: vc4 as /devices/platform/soc/fef00700.hdmi/rc/rc0
+[    6.430114] input: vc4 as /devices/platform/soc/fef00700.hdmi/rc/rc0/input5
+[    6.431076] vc4_hdmi fef00700.hdmi: Could not register sound card: -517
+[    6.433989] usbcore: registered new interface driver usbserial_generic
+[    6.434068] usbserial: USB Serial support registered for generic
+[    6.470801] cfg80211: Loaded X.509 cert 'sforshee: 00b28ddf47aef9cea7'
+[    6.502733] cfg80211: loaded regulatory.db is malformed or signature is missing/invalid
+[    6.504459] usbcore: registered new interface driver ftdi_sio
+[    6.504571] usbserial: USB Serial support registered for FTDI USB Serial Device
+[    6.504912] ftdi_sio 1-1.3:1.0: FTDI USB Serial Device converter detected
+[    6.520959] usb 1-1.3: Detected FT232RL
+[    6.577578] usb 1-1.3: FTDI USB Serial Device converter now attached to ttyUSB0
+[    6.583589] vc4-drm gpu: bound fe400000.hvs (ops vc4_hvs_ops [vc4])
+[    6.588887] Registered IR keymap rc-cec
+[    6.589593] rc rc0: vc4 as /devices/platform/soc/fef00700.hdmi/rc/rc0
+[    6.590489] input: vc4 as /devices/platform/soc/fef00700.hdmi/rc/rc0/input6
+[    6.592033] vc4_hdmi fef00700.hdmi: Could not register sound card: -517
+[    6.665304] brcmfmac: F1 signature read @0x18000000=0x15264345
+[    6.695952] vc4-drm gpu: bound fe400000.hvs (ops vc4_hvs_ops [vc4])
+[    6.707434] Registered IR keymap rc-cec
+[    6.707625] rc rc0: vc4 as /devices/platform/soc/fef00700.hdmi/rc/rc0
+[    6.707855] input: vc4 as /devices/platform/soc/fef00700.hdmi/rc/rc0/input7
+[    6.708841] vc4_hdmi fef00700.hdmi: Could not register sound card: -517
+[    6.803196] brcmfmac: brcmf_fw_alloc_request: using brcm/brcmfmac43455-sdio for chip BCM4345/6
+[    6.804060] usbcore: registered new interface driver brcmfmac
+[    6.839708] vc4-drm gpu: bound fe400000.hvs (ops vc4_hvs_ops [vc4])
+[    6.874069] Registered IR keymap rc-cec
+[    6.874262] rc rc0: vc4 as /devices/platform/soc/fef00700.hdmi/rc/rc0
+[    6.874575] input: vc4 as /devices/platform/soc/fef00700.hdmi/rc/rc0/input8
+[    6.884092] vc4_hdmi fef00700.hdmi: Could not register sound card: -517
+[    7.093885] brcmfmac: brcmf_fw_alloc_request: using brcm/brcmfmac43455-sdio for chip BCM4345/6
+[    7.094950] brcmfmac: brcmf_fw_alloc_request: using brcm/brcmfmac43455-sdio for chip BCM4345/6
+[    7.100857] brcmfmac: brcmf_c_preinit_dcmds: Firmware: BCM4345/6 wl0: Nov  1 2021 00:37:25 version 7.45.241 (1a2f2fa CY) FWID 01-703fd60
+[    7.135304] random: crng init done
+[    7.135326] random: 7 urandom warning(s) missed due to ratelimiting
+[    7.684332] 8021q: 802.1Q VLAN Support v1.8
+[    7.698344] uart-pl011 fe201000.serial: no DMA platform data
+[    7.809529] bcmgenet fd580000.ethernet: configuring instance for external RGMII (RX delay)
+[    7.809980] bcmgenet fd580000.ethernet eth0: Link is Down
+[    7.866174] vc4-drm gpu: bound fe400000.hvs (ops vc4_hvs_ops [vc4])
+[    7.898859] Registered IR keymap rc-cec
+[    7.899092] rc rc0: vc4 as /devices/platform/soc/fef00700.hdmi/rc/rc0
+[    7.899441] input: vc4 as /devices/platform/soc/fef00700.hdmi/rc/rc0/input9
+[    7.904043] vc4-drm gpu: bound fef00700.hdmi (ops vc4_hdmi_ops [vc4])
+[    7.945948] Registered IR keymap rc-cec
+[    7.946157] rc rc1: vc4 as /devices/platform/soc/fef05700.hdmi/rc/rc1
+[    7.946440] input: vc4 as /devices/platform/soc/fef05700.hdmi/rc/rc1/input10
+[    7.950957] vc4-drm gpu: bound fef05700.hdmi (ops vc4_hdmi_ops [vc4])
+[    7.951459] vc4-drm gpu: bound fe004000.txp (ops vc4_txp_ops [vc4])
+[    7.951796] vc4-drm gpu: bound fe206000.pixelvalve (ops vc4_crtc_ops [vc4])
+[    7.952276] vc4-drm gpu: bound fe207000.pixelvalve (ops vc4_crtc_ops [vc4])
+[    7.952749] vc4-drm gpu: bound fe20a000.pixelvalve (ops vc4_crtc_ops [vc4])
+[    7.953035] vc4-drm gpu: bound fe216000.pixelvalve (ops vc4_crtc_ops [vc4])
+[    7.953493] vc4-drm gpu: bound fec12000.pixelvalve (ops vc4_crtc_ops [vc4])
+[    7.998197] [drm] Initialized vc4 0.0.0 20140616 for gpu on minor 0
+[    8.045318] Adding 102396k swap on /var/swap.  Priority:-2 extents:1 across:102396k SSFS
+[    8.103451] Console: switching to colour frame buffer device 240x67
+[    8.130614] vc4-drm gpu: [drm] fb0: vc4drmfb frame buffer device
+[    8.146535] usb 1-1.4: USB disconnect, device number 6
+[    9.134954] brcmfmac: brcmf_cfg80211_set_power_mgmt: power save enabled
+[   11.995378] bcmgenet fd580000.ethernet eth0: Link is Up - 1Gbps/Full - flow control rx/tx
+[   11.995403] IPv6: ADDRCONF(NETDEV_CHANGE): eth0: link becomes ready
+[   14.298708] hdmi-audio-codec hdmi-audio-codec.8.auto: ASoC: error at snd_soc_dai_startup on i2s-hifi: -19
+[   14.299325] hdmi-audio-codec hdmi-audio-codec.8.auto: ASoC: error at snd_soc_dai_startup on i2s-hifi: -19
+[   14.299900] hdmi-audio-codec hdmi-audio-codec.8.auto: ASoC: error at snd_soc_dai_startup on i2s-hifi: -19
+[   14.307423] hdmi-audio-codec hdmi-audio-codec.8.auto: ASoC: error at snd_soc_dai_startup on i2s-hifi: -19
+[   14.307736] hdmi-audio-codec hdmi-audio-codec.8.auto: ASoC: error at snd_soc_dai_startup on i2s-hifi: -19
+[   14.308002] hdmi-audio-codec hdmi-audio-codec.8.auto: ASoC: error at snd_soc_dai_startup on i2s-hifi: -19
+[   14.756409] Bluetooth: Core ver 2.22
+[   14.756530] NET: Registered protocol family 31
+[   14.756544] Bluetooth: HCI device and connection manager initialized
+[   14.757377] Bluetooth: HCI socket layer initialized
+[   14.757400] Bluetooth: L2CAP socket layer initialized
+[   14.757441] Bluetooth: SCO socket layer initialized
+[   14.782144] Bluetooth: HCI UART driver ver 2.3
+[   14.782165] Bluetooth: HCI UART protocol H4 registered
+[   14.782276] Bluetooth: HCI UART protocol Three-wire (H5) registered
+[   14.782642] Bluetooth: HCI UART protocol Broadcom registered
+[   15.051528] Bluetooth: BNEP (Ethernet Emulation) ver 1.3
+[   15.051537] Bluetooth: BNEP filters: protocol multicast
+[   15.051550] Bluetooth: BNEP socket layer initialized
+[   15.070703] NET: Registered protocol family 38
+[   15.099177] cryptd: max_cpu_qlen set to 1000
+[   16.545687] Bluetooth: RFCOMM TTY layer initialized
+[   16.545729] Bluetooth: RFCOMM socket layer initialized
+[   16.545766] Bluetooth: RFCOMM ver 1.11
+[   23.764364] usb 1-1.3: USB disconnect, device number 4
+[   23.764892] ftdi_sio ttyUSB0: FTDI USB Serial Device converter now disconnected from ttyUSB0
+[   23.764952] ftdi_sio 1-1.3:1.0: device disconnected
+[   28.372975] usb 1-1.1: USB disconnect, device number 3
+[   28.372986] usb 1-1.1.1: USB disconnect, device number 5
+[   28.475444] usb 2-1: USB disconnect, device number 2
+[   60.435810] usb 2-2: new SuperSpeed Gen 1 USB device number 3 using xhci_hcd
+[   60.468981] usb 2-2: New USB device found, idVendor=05e3, idProduct=0626, bcdDevice= 6.55
+[   60.469003] usb 2-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[   60.469022] usb 2-2: Product: USB3.1 Hub
+[   60.469041] usb 2-2: Manufacturer: GenesysLogic
+[   60.472936] hub 2-2:1.0: USB hub found
+[   60.473406] hub 2-2:1.0: 4 ports detected
+[   60.575273] usb 1-1.2: new high-speed USB device number 7 using xhci_hcd
+[   60.708059] usb 1-1.2: New USB device found, idVendor=05e3, idProduct=0610, bcdDevice= 6.55
+[   60.708067] usb 1-1.2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[   60.708074] usb 1-1.2: Product: USB2.1 Hub
+[   60.708080] usb 1-1.2: Manufacturer: GenesysLogic
+[   60.709283] hub 1-1.2:1.0: USB hub found
+[   60.709597] hub 1-1.2:1.0: 4 ports detected
+[   61.045243] usb 1-1.2.1: new low-speed USB device number 8 using xhci_hcd
+[   61.204866] usb 1-1.2.1: New USB device found, idVendor=046d, idProduct=c31c, bcdDevice=49.00
+[   61.204874] usb 1-1.2.1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[   61.204880] usb 1-1.2.1: Product: USB Keyboard
+[   61.204886] usb 1-1.2.1: Manufacturer: Logitech
+[   61.216018] input: Logitech USB Keyboard as /devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.2/1-1.2.1/1-1.2.1:1.0/0003:046D:C31C.0003/input/input11
+[   61.286214] hid-generic 0003:046D:C31C.0003: input,hidraw0: USB HID v1.10 Keyboard [Logitech USB Keyboard] on usb-0000:01:00.0-1.2.1/input0
+[   61.295725] input: Logitech USB Keyboard as /devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.2/1-1.2.1/1-1.2.1:1.1/0003:046D:C31C.0004/input/input12
+[   61.365607] hid-generic 0003:046D:C31C.0004: input,hidraw1: USB HID v1.10 Device [Logitech USB Keyboard] on usb-0000:01:00.0-1.2.1/input1
+[ 1545.523586] usb 1-1.4: new high-speed USB device number 9 using xhci_hcd
+[ 1545.659134] usb 1-1.4: New USB device found, idVendor=0403, idProduct=6014, bcdDevice= 9.00
+[ 1545.659156] usb 1-1.4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 1545.659174] usb 1-1.4: Product: Digilent USB Device
+[ 1545.659191] usb 1-1.4: Manufacturer: Digilent
+[ 1545.659209] usb 1-1.4: SerialNumber: 210321A35EAE
+[ 1545.664000] ftdi_sio 1-1.4:1.0: FTDI USB Serial Device converter detected
+[ 1545.664220] usb 1-1.4: Detected FT232H
+[ 1545.665442] usb 1-1.4: FTDI USB Serial Device converter now attached to ttyUSB0
+[ 1545.746371] ftdi_sio ttyUSB0: FTDI USB Serial Device converter now disconnected from ttyUSB0
+[ 1545.746446] ftdi_sio 1-1.4:1.0: device disconnected
+[ 1552.443700] usb 1-1.3: new full-speed USB device number 10 using xhci_hcd
+[ 1552.599928] usb 1-1.3: New USB device found, idVendor=0403, idProduct=6001, bcdDevice= 6.00
+[ 1552.599950] usb 1-1.3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 1552.599968] usb 1-1.3: Product: FT232R USB UART
+[ 1552.599986] usb 1-1.3: Manufacturer: FTDI
+[ 1552.600003] usb 1-1.3: SerialNumber: A60090B4
+[ 1552.618664] ftdi_sio 1-1.3:1.0: FTDI USB Serial Device converter detected
+[ 1552.618864] usb 1-1.3: Detected FT232RL
+[ 1552.623072] usb 1-1.3: FTDI USB Serial Device converter now attached to ttyUSB0
+[ 1595.156774] usb 1-1.4: USB disconnect, device number 9
+[ 1603.605844] usb 1-1.3: USB disconnect, device number 10
+[ 1603.607050] ftdi_sio ttyUSB0: FTDI USB Serial Device converter now disconnected from ttyUSB0
+[ 1603.607197] ftdi_sio 1-1.3:1.0: device disconnected
+[ 1615.724319] usb 1-1.3: new full-speed USB device number 11 using xhci_hcd
+[ 1615.863418] usb 1-1.3: New USB device found, idVendor=2886, idProduct=802f, bcdDevice= 1.04
+[ 1615.863440] usb 1-1.3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 1615.863458] usb 1-1.3: Product: Seeeduino XIAO
+[ 1615.863475] usb 1-1.3: Manufacturer: Seeed
+[ 1615.863493] usb 1-1.3: SerialNumber: 4669B92F50575230362E3120FF132C1F
+[ 1615.868502] cdc_acm 1-1.3:1.0: ttyACM0: USB ACM device
+[ 1636.414553] usb 1-1.4: new full-speed USB device number 12 using xhci_hcd
+[ 1636.560821] usb 1-1.4: New USB device found, idVendor=0403, idProduct=6001, bcdDevice= 6.00
+[ 1636.560843] usb 1-1.4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 1636.560861] usb 1-1.4: Product: FT232R USB UART
+[ 1636.560879] usb 1-1.4: Manufacturer: FTDI
+[ 1636.560896] usb 1-1.4: SerialNumber: A60090B4
+[ 1636.571580] ftdi_sio 1-1.4:1.0: FTDI USB Serial Device converter detected
+[ 1636.571774] usb 1-1.4: Detected FT232RL
+[ 1636.577899] usb 1-1.4: FTDI USB Serial Device converter now attached to ttyUSB0
+[ 1695.778850] usb 1-1.4: USB disconnect, device number 12
+[ 1695.780063] ftdi_sio ttyUSB0: FTDI USB Serial Device converter now disconnected from ttyUSB0
+[ 1695.780213] ftdi_sio 1-1.4:1.0: device disconnected
+[ 1957.487939] usb 1-1.4: new full-speed USB device number 13 using xhci_hcd
+[ 1957.634187] usb 1-1.4: New USB device found, idVendor=0403, idProduct=6001, bcdDevice= 6.00
+[ 1957.634210] usb 1-1.4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[ 1957.634228] usb 1-1.4: Product: FT232R USB UART
+[ 1957.634246] usb 1-1.4: Manufacturer: FTDI
+[ 1957.634263] usb 1-1.4: SerialNumber: A60090B4
+[ 1957.656888] ftdi_sio 1-1.4:1.0: FTDI USB Serial Device converter detected
+[ 1957.657024] usb 1-1.4: Detected FT232RL
+[ 1957.661846] usb 1-1.4: FTDI USB Serial Device converter now attached to ttyUSB0
+[74103.743348] usb 1-1.3: USB disconnect, device number 11
+[77891.335221] usb 1-1.1: new full-speed USB device number 14 using xhci_hcd
+[77891.474573] usb 1-1.1: New USB device found, idVendor=2886, idProduct=802f, bcdDevice= 1.04
+[77891.474595] usb 1-1.1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[77891.474613] usb 1-1.1: Product: Seeeduino XIAO
+[77891.474631] usb 1-1.1: Manufacturer: Seeed
+[77891.474648] usb 1-1.1: SerialNumber: 0FA0A99C50574B52322E3120FF153318
+[77891.483558] cdc_acm 1-1.1:1.0: ttyACM0: USB ACM device
+[81101.123392] v3d fec00000.v3d: MMU error from client L2T (0) at 0x97e1000, pte invalid
+[1205195.381734] usb 1-1.1: USB disconnect, device number 14
+[1205341.104705] usb 1-1.1: new full-speed USB device number 15 using xhci_hcd
+[1205341.244054] usb 1-1.1: New USB device found, idVendor=2886, idProduct=802f, bcdDevice= 1.04
+[1205341.244075] usb 1-1.1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[1205341.244091] usb 1-1.1: Product: Seeeduino XIAO
+[1205341.244106] usb 1-1.1: Manufacturer: Seeed
+[1205341.244121] usb 1-1.1: SerialNumber: 0FA0A99C50574B52322E3120FF153318
+[1205341.249009] cdc_acm 1-1.1:1.0: ttyACM0: USB ACM device
+[1208033.796925] usb 1-1.1: USB disconnect, device number 15
+[1208063.808162] usb 1-1.1: new full-speed USB device number 16 using xhci_hcd
+[1208063.958976] usb 1-1.1: New USB device found, idVendor=2886, idProduct=802f, bcdDevice= 1.04
+[1208063.958996] usb 1-1.1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[1208063.959013] usb 1-1.1: Product: Seeeduino XIAO
+[1208063.959028] usb 1-1.1: Manufacturer: Seeed
+[1208063.959043] usb 1-1.1: SerialNumber: 0FA0A99C50574B52322E3120FF153318
+[1208063.964885] cdc_acm 1-1.1:1.0: ttyACM0: USB ACM device
+[1210015.771024] usb 1-1.1: USB disconnect, device number 16
+[1210048.594964] usb 1-1.1: new full-speed USB device number 17 using xhci_hcd
+[1210048.744761] usb 1-1.1: New USB device found, idVendor=2886, idProduct=802f, bcdDevice= 1.04
+[1210048.744783] usb 1-1.1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[1210048.744800] usb 1-1.1: Product: Seeeduino XIAO
+[1210048.744816] usb 1-1.1: Manufacturer: Seeed
+[1210048.744831] usb 1-1.1: SerialNumber: 0FA0A99C50574B52322E3120FF153318
+[1210048.751729] cdc_acm 1-1.1:1.0: ttyACM0: USB ACM device
+[1372281.651429] usb 1-1.2: USB disconnect, device number 7
+[1372281.651458] usb 1-1.2.1: USB disconnect, device number 8
+[1372281.705315] usb 2-2: Disable of device-initiated U1 failed.
+[1372281.705623] usb 2-2: Disable of device-initiated U2 failed.
+[1372281.855611] usb 2-2: reset SuperSpeed Gen 1 USB device number 3 using xhci_hcd
+[1372282.294990] usb 1-1.2: new high-speed USB device number 18 using xhci_hcd
+[1372282.427651] usb 1-1.2: New USB device found, idVendor=05e3, idProduct=0610, bcdDevice= 6.55
+[1372282.427659] usb 1-1.2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[1372282.427665] usb 1-1.2: Product: USB2.1 Hub
+[1372282.427671] usb 1-1.2: Manufacturer: GenesysLogic
+[1372282.428727] hub 1-1.2:1.0: USB hub found
+[1372282.429063] hub 1-1.2:1.0: 4 ports detected
+[1372282.765029] usb 1-1.2.1: new low-speed USB device number 19 using xhci_hcd
+[1372282.924840] usb 1-1.2.1: New USB device found, idVendor=046d, idProduct=c31c, bcdDevice=49.00
+[1372282.924864] usb 1-1.2.1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[1372282.924882] usb 1-1.2.1: Product: USB Keyboard
+[1372282.924900] usb 1-1.2.1: Manufacturer: Logitech
+[1372282.941707] input: Logitech USB Keyboard as /devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.2/1-1.2.1/1-1.2.1:1.0/0003:046D:C31C.0005/input/input13
+[1372283.006375] hid-generic 0003:046D:C31C.0005: input,hidraw0: USB HID v1.10 Keyboard [Logitech USB Keyboard] on usb-0000:01:00.0-1.2.1/input0
+[1372283.016190] input: Logitech USB Keyboard as /devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.2/1-1.2.1/1-1.2.1:1.1/0003:046D:C31C.0006/input/input14
+[1372283.085511] hid-generic 0003:046D:C31C.0006: input,hidraw1: USB HID v1.10 Device [Logitech USB Keyboard] on usb-0000:01:00.0-1.2.1/input1
+[1372283.225034] usb 1-1.2.4: new high-speed USB device number 20 using xhci_hcd
+[1372283.375832] usb 1-1.2.4: device descriptor read/all, error -71
+[1372284.015045] usb 1-1.2.4: new high-speed USB device number 21 using xhci_hcd
+[1372284.175938] usb 1-1.2.4: New USB device found, idVendor=04b5, idProduct=6cde, bcdDevice= 0.00
+[1372284.175968] usb 1-1.2.4: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[1372284.176003] usb 1-1.2.4: Product: DSO Device 
+[1372284.176021] usb 1-1.2.4: Manufacturer: ODM   
+[1372368.674471] usb 1-1.2.1: USB disconnect, device number 19
+[1372378.206257] usb 1-1.2.1: new low-speed USB device number 22 using xhci_hcd
+[1372378.374513] usb 1-1.2.1: New USB device found, idVendor=046d, idProduct=c077, bcdDevice=72.00
+[1372378.374538] usb 1-1.2.1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[1372378.374556] usb 1-1.2.1: Product: USB Optical Mouse
+[1372378.374574] usb 1-1.2.1: Manufacturer: Logitech
+[1372378.384373] input: Logitech USB Optical Mouse as /devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.2/1-1.2.1/1-1.2.1:1.0/0003:046D:C077.0007/input/input15
+[1372378.385116] hid-generic 0003:046D:C077.0007: input,hidraw0: USB HID v1.11 Mouse [Logitech USB Optical Mouse] on usb-0000:01:00.0-1.2.1/input0
+[1372400.422912] usb 1-1.2.1: USB disconnect, device number 22
+[1372403.046573] usb 1-1.2.1: new low-speed USB device number 23 using xhci_hcd
+[1372403.206256] usb 1-1.2.1: New USB device found, idVendor=046d, idProduct=c31c, bcdDevice=49.00
+[1372403.206278] usb 1-1.2.1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[1372403.206297] usb 1-1.2.1: Product: USB Keyboard
+[1372403.206315] usb 1-1.2.1: Manufacturer: Logitech
+[1372403.223176] input: Logitech USB Keyboard as /devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.2/1-1.2.1/1-1.2.1:1.0/0003:046D:C31C.0008/input/input16
+[1372403.287732] hid-generic 0003:046D:C31C.0008: input,hidraw0: USB HID v1.10 Keyboard [Logitech USB Keyboard] on usb-0000:01:00.0-1.2.1/input0
+[1372403.297620] input: Logitech USB Keyboard as /devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.2/1-1.2.1/1-1.2.1:1.1/0003:046D:C31C.0009/input/input17
+[1372403.367042] hid-generic 0003:046D:C31C.0009: input,hidraw1: USB HID v1.10 Device [Logitech USB Keyboard] on usb-0000:01:00.0-1.2.1/input1
+[1372418.926777] usb 1-1.3: new low-speed USB device number 24 using xhci_hcd
+[1372419.064735] usb 1-1.3: New USB device found, idVendor=046d, idProduct=c077, bcdDevice=72.00
+[1372419.064760] usb 1-1.3: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[1372419.064778] usb 1-1.3: Product: USB Optical Mouse
+[1372419.064796] usb 1-1.3: Manufacturer: Logitech
+[1372419.084189] input: Logitech USB Optical Mouse as /devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.3/1-1.3:1.0/0003:046D:C077.000A/input/input18
+[1372419.085446] hid-generic 0003:046D:C077.000A: input,hidraw2: USB HID v1.11 Mouse [Logitech USB Optical Mouse] on usb-0000:01:00.0-1.3/input0
+[1718460.793922] usb 1-1.1: USB disconnect, device number 17
+[2229971.154256] usb 1-1.1: new full-speed USB device number 25 using xhci_hcd
+[2229971.254486] usb 1-1.1: device descriptor read/64, error -32
+[2229971.474506] usb 1-1.1: device descriptor read/64, error -32
+[2229971.694270] usb 1-1.1: new full-speed USB device number 26 using xhci_hcd
+[2229971.794500] usb 1-1.1: device descriptor read/64, error -32
+[2229972.014523] usb 1-1.1: device descriptor read/64, error -32
+[2229972.134692] usb 1-1-port1: attempt power cycle
+[2229972.794277] usb 1-1.1: new full-speed USB device number 27 using xhci_hcd
+[2229972.794526] usb 1-1.1: Device not responding to setup address.
+[2229973.014490] usb 1-1.1: Device not responding to setup address.
+[2229973.234269] usb 1-1.1: device not accepting address 27, error -71
+[2229973.334278] usb 1-1.1: new full-speed USB device number 28 using xhci_hcd
+[2229973.334509] usb 1-1.1: Device not responding to setup address.
+[2229973.554468] usb 1-1.1: Device not responding to setup address.
+[2229973.774317] usb 1-1.1: device not accepting address 28, error -71
+[2229973.774887] usb 1-1-port1: unable to enumerate USB device
+[2229983.912168] usb 1-1.3: USB disconnect, device number 24
+[2229985.192261] usb 1-1.4: USB disconnect, device number 13
+[2229985.193506] ftdi_sio ttyUSB0: FTDI USB Serial Device converter now disconnected from ttyUSB0
+[2229985.193641] ftdi_sio 1-1.4:1.0: device disconnected
+[2230005.714691] usb 1-1.4: new high-speed USB device number 29 using xhci_hcd
+[2230005.845512] usb 1-1.4: New USB device found, idVendor=16c0, idProduct=0483, bcdDevice= 2.80
+[2230005.845534] usb 1-1.4: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[2230005.845550] usb 1-1.4: Product: USB Serial
+[2230005.845565] usb 1-1.4: Manufacturer: Teensyduino
+[2230005.845579] usb 1-1.4: SerialNumber: 10167240
+[2230005.855402] cdc_acm 1-1.4:1.0: ttyACM0: USB ACM device
+[2230025.964982] usb 1-1.3: new low-speed USB device number 30 using xhci_hcd
+[2230026.103331] usb 1-1.3: New USB device found, idVendor=046d, idProduct=c077, bcdDevice=72.00
+[2230026.103353] usb 1-1.3: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+[2230026.103369] usb 1-1.3: Product: USB Optical Mouse
+[2230026.103384] usb 1-1.3: Manufacturer: Logitech
+[2230026.118550] input: Logitech USB Optical Mouse as /devices/platform/scb/fd500000.pcie/pci0000:00/0000:00:00.0/0000:01:00.0/usb1/1-1/1-1.3/1-1.3:1.0/0003:046D:C077.000B/input/input19
+[2230026.119075] hid-generic 0003:046D:C077.000B: input,hidraw2: USB HID v1.11 Mouse [Logitech USB Optical Mouse] on usb-0000:01:00.0-1.3/input0
