@@ -1,6 +1,8 @@
 import unittest
 import time
 import os
+
+print(os.getcwd())
 from src.datahandler import DataHandler
 
 

@@ -1,6 +1,6 @@
 import unittest
 import logging
-from src import tracecontroller
+from . import tracecontroller
 from src import datalogger
 
 class TestDatalogger(unittest.TestCase):

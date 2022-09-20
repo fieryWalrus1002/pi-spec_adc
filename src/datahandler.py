@@ -1,13 +1,9 @@
+import csv
 import time
-import os
 from pathlib import Path
-import glob
-
-
-class TraceData:
-    def __init__(self, buffer: str, note: str):
-        self.buffer = buffer
-        self.created = time.strftime("%y%m%d_%H%M%s")
+from src.trace_utils import TraceData
+import pandas as pd
+from io import StringIO
 
 
 class DataHandler:
@@ -15,54 +11,99 @@ class DataHandler:
 
     def __init__(self):
         self.trace_buffers = []
+        self.created = time.time()
 
-    def init_experiment(exp_name: str = "exp_name") -> bool:
-        """Create directory for data export in format:
-        /export/{today}_{exp_name}/
-        
-        params:
-        exp_name: str
-        """
-        today = time.strftime("%y%m%d")
-        if not os.path.exists(f"/export/{today}_{exp_name}"):
-            os.makedirs(f"/export/{today}_{exp_name}")
-
-    def parse_data():
-        pass
-
-    def save_buffer_to_csv(self, wl, trace_buffer, trace_num, trace_note):
-        """give wavelength, str buffer of data, trace num, and note to save to csv"""
-        trace_date = time.strftime("%d%m%y")
-        trace_time = time.strftime("%H%M")
-
-        export_path = (
-            "./export/"
-            + trace_date
-            + "_"
-            + trace_time
-            + "_"
-            + wl
-            + "_"
-            + trace_note
-            + str(trace_num)
+    def save_buffer(
+        self,
+        buffer: str,
+        note: str,
+        param_string: str,
+        trace_begun: float,
+        trace_end: float,
+        rep: int,
+    ):
+        self.trace_buffers.append(
+            TraceData(
+                rep=rep,
+                buffer=buffer,
+                trace_num=len(self.trace_buffers),
+                trace_begun=trace_begun,
+                trace_end=trace_end,
+                param_string=param_string,
+                note=note,
+            )
         )
-        trace_filename = export_path + ".csv"
 
-        # make the directory if it doesn't exist already
-        Path("./export/").mkdir(parents=True, exist_ok=True)
+    def convert_tdata_to_df(self, tdata: TraceData) -> pd.DataFrame:
 
-        # how many columns are there?
-        data_col_count = len(trace_buffer.split("\n")[5]) - 2
-        header_row = ["num", "time_us"] + ["val{i}" for i in range(data_col_count)]
-        # write the data for this trace to disk
-        with open(trace_filename, "w") as f:
-            writer = csv.writer(f, delimiter=",")
-            # writer.writerow(["trace_params", trace_params.parameter_string])
-            writer.writerow(header_row)
+        df = self.parse_buffer(tdata=tdata)
 
-            for row in trace_buffer.split("\n"):
-                # print(row.split(","))
-                writer.writerow(row.split(","))
-        f.close()
+        return df
 
-        return trace_filename
+    def parse_buffer(self, tdata: TraceData) -> pd.DataFrame:
+        """
+        takes a tracedata string buffer of data from the tracecontroller and converts it to a
+        dataframe, and adds the metadata for each point
+        """
+        data_list = []
+        meta_cols, meta_vals = tdata.metadata
+        buffer = tdata.buffer.split("\r\n")
+
+        i = 0
+        j = 0
+        buf_len = len(buffer)
+        first_line = len(buffer)
+        last_line = 0
+
+        for i in range(0, buf_len):
+            len1 = len(buffer[i].split(","))
+            len2 = len(buffer[i + 1].split(","))
+            
+            if len1 == len2:
+                first_line = i
+                break           
+
+        for i in range(0, buf_len):
+            len1 = len(buffer[buf_len - i - 1].split(","))
+            len2 = len(buffer[buf_len - i - 2].split(","))
+            
+            if len1 == len2:
+                last_line = i - 1
+                break          
+        
+        
+        
+        for i, line in enumerate(buffer[first_line:last_line]):
+
+            
+            spl_line = line.split(",")               
+
+            for i, item in enumerate(spl_line):
+                try: 
+                    spl_line[i] = float(item)
+                except:
+                    #mwahahahahahah
+                    pass
+
+            if len(spl_line) > 1:
+                data_list.append(meta_vals + spl_line)
+
+            
+               
+        num_cols = len(buffer[first_line].split(","))
+        
+        aq_cols = [f"aq_{x}" for x in range(0, num_cols - 2)]
+        
+        columns = meta_cols + ["pt_num", "time_us"] + aq_cols
+        
+        df = pd.DataFrame(data_list, columns=columns)
+        
+
+        return df
+
+    def get_dataframe(self):
+    
+        dfs = [self.convert_tdata_to_df(tdata) for tdata in self.trace_buffers]
+
+        return dfs
+

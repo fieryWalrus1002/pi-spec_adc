@@ -1,5 +1,5 @@
 import unittest
-from src import tracecontroller
+from . import tracecontroller
 
 
 class TestTracecontroller(unittest.TestCase):
