@@ -2,28 +2,63 @@ import serial
 import serial.tools.list_ports
 import logging
 import time
+from threading import Thread
+
 
 class TraceController:
     def __init__(self, baud_rate: int = 115200, timeout: float = 1.0):
-        self.ser = None
-        self.connect_ser(baud_rate, timeout)
+        self.baud_rate = baud_rate
+        self.timeout = timeout
+        self.device = self.get_device_port()
+        self.ser = self.connect_to_device()
         self.data = []
+        self.daemon = Thread(daemon=True, target=self.check_conn_status)
+        self.daemon.start()
+        self.max_intensity = 255  # limit on how high you can set the actinic, in 0-255
+
+    def check_conn_status(self, interval_sec: float = 0.25):
+        while True:
+            if self.connected == False:
+                self.ser = self.connect_to_device()
+            time.sleep(interval_sec)
+
+    def connect_to_device(self):
+        ser = None
+
+        while ser is None:
+            ser = serial.Serial(
+                port=self.device,
+                baudrate=self.baud_rate,
+                timeout=self.timeout,
+                write_timeout=self.timeout,
+            )
+            time.sleep(0.2)
+
+        # print(f"connect_to_device() connecting to {self.device}")
+        return ser
+
+    def connected(self):
+        try:
+            resp = self.ser.isOpen()
+        except serial.SerialException as e:
+            print(f"error: {e}")
+            return False
+        return resp
 
     def flush_buffer(self) -> bool:
         self.ser.flush()
         return True
-    
+
     def switch_pulser_power(self, power: bool, timeout: int = 10000) -> str:
 
         if power:
             self.set_parameters("q1")
         else:
             self.set_parameters("q0")
-        
-        return self.read_ser_buffer(timeout=timeout)
-        
 
-    def connect_ser(self, baud_rate, timeout):
+        return self.read_ser_buffer(timeout=timeout)
+
+    def get_device_port(self):
         """connects to microcontroller device with serial, returns connection to device
         3-21-22 now using Teensy 4.1
         idVendor=16c0, idProduct=0483, bcdDevice= 2.80
@@ -38,25 +73,16 @@ class TraceController:
         for port in serial.tools.list_ports.comports():
 
             if port.vid == int("16c0", 16):
-                print(port.vid)
                 device = port.device
                 logging.debug(device)
 
-        while self.ser is None:
-            logging.debug(f"connection to {device} initiated.")
-            self.ser = serial.Serial(device, baud_rate, timeout=timeout)
-
-            if self.ser is None:
-                time.sleep(1)
-
-        logging.debug(f"ser connected at {device}")
-        logging.debug("so we're done with connect_sr")
+        return device
 
     def get_diagnostic_info(self):
         return self.ser
 
     def get_num_points(self):
-        self.set_parameters("d")
+        self.set_parameters("d0")
         time.sleep(0.25)
         recv = self.ser.readline()
         return recv
@@ -67,12 +93,20 @@ class TraceController:
         params = self.ser.readline().decode("utf-8")
         return params
 
-    def set_parameters(self, cmd_input="", value=0):
-        cmd_output = cmd_input + str(value) + ";"
+    def set_parameters(self, cmd_input: str = ""):
+        """ set a paramter as a string in the format: 
+            "[a-z][0-10000]"
+
+            The serial command will be interpreted by the microcontroller as a command
+            corresponding to the lower-case letter used, and a value given after it. 
+            Commands are processed by a semicolon, which is included by this function.
+            """
+        cmd_output = f"{cmd_input};"
         self.ser.write(cmd_output.encode("utf-8"))
+        return cmd_output
 
     def read_ser_buffer(self, timeout: int = 100000):
-        """ reads incoming bytes and converts to string """
+        """reads incoming bytes and converts to string"""
         timeout_cnt = 0
         recv = bytearray()
         recv_state = True
@@ -101,29 +135,19 @@ class TraceController:
                 else:
                     # timeout, but a good size buffer
                     return 0, buffer
-                    
+
         return 0, buffer
 
     def get_trace_data(self, timeout: int = 10000):
-        """ 
-            sends retrieval command to tracecontroller, then reads the serial buffer
-            and returns it as a string
-        """ 
+        """
+        sends retrieval command to tracecontroller, then reads the serial buffer
+        and returns it as a string
+        """
         self.set_parameters("g0")
 
         status, buffer = self.read_ser_buffer(timeout=timeout)
 
         return status, buffer
-
-    def modify_actinic(self, intensity: int):
-        """ set the current actinic intensity
-            not used during traces, but for in between steps
-            and pre-illumination
-        """
-        if intensity > 0:
-            self.set_parameters(f'a{intensity}')
-        else: 
-            self.set_parameters(f'a0')
 
 # class DummyData:
 #     """provides formatted lines of a previous datafile to mimic the ADC output"""
@@ -228,5 +252,3 @@ class TraceController:
 #         logging.debug(trace_filename)
 
 #         return trace_filename
-
-

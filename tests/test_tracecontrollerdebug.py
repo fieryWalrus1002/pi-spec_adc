@@ -3,7 +3,7 @@ import sys
 
 sys.path.append("D:/projects/pi-spec-cli/src")
 
-from tracecontroller import TraceControllerDebug
+from src.tracecontroller import TraceControllerDebug
 
 
 class TestTracecontrollerDebug(unittest.TestCase):

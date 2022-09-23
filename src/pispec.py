@@ -1,6 +1,7 @@
 import logging
 from io import StringIO
 import argparse
+import serial
 import os
 from pickletools import int4
 import pandas as pd
@@ -8,7 +9,7 @@ from serial.serialutil import PARITY_NONE, STOPBITS_ONE
 from dataclasses import dataclass
 from src.datahandler import DataHandler
 from src.trace_utils import TraceParams
-from tracecontroller import TraceController
+from src.tracecontroller import TraceController
 
 # from src.tracecontroller import TraceController, TraceControllerDebug
 from datetime import datetime
@@ -25,22 +26,41 @@ class TestClass:
 
 class PiSpec:
     def __init__(self):
-        self.tracecontroller = TraceController(baud_rate=115200)
+        self.tracecontroller = TraceController()
         self.datahandler = DataHandler()
-        self.data = []
         self.params = TraceParams()
+        self._max_intensity = 255
 
     def wait(self, time_s: int):
         time.sleep(time_s)
+
+    def _check_tc_connection(self):
+        while self.tracecontroller.connected() == False:
+            self.tracecontroller.connect_to_device()
+            print("tc disconnected, reconnecting...")
 
     def set_actinic(self, intensity: int):
         """set the current actinic intensit. not used during traces, but for in between
         traces and during pre-illumination
 
         params:
-        intensity: desired intensity in uE
+        intensity: 0-255 range of intensity, not currenbtly correlated to uE
         """
-        self.tracecontroller.modify_actinic(intensity=intensity)
+        if intensity >= 0 and intensity <= 255 and type(intensity) == int:
+            cmd = str(f"a{intensity}")
+            resp = self.tracecontroller.set_parameters(cmd)
+            # print(f"set_actinic: {cmd}, resp: {resp}")
+            return resp
+        else:
+            return  f"Error: accepts only integer values 0-255, you input was {type(intensity)}"
+
+        # print(cmd, ", ", cmd_sent)
+
+        # self._check_tc_connection()
+
+        # if intensity > self._max_intensity:
+        #     self.tracecontroller.modify_actinic(intensity=self._max_intensity)
+        # else:
 
     def init_experiment(self, exp_name: str) -> bool:
         """Create directory for data export in format:
@@ -63,6 +83,8 @@ class PiSpec:
         the paramaters for verification"""
         self.params = params
 
+        self._check_tc_connection()
+
         self.tracecontroller.set_parameters(params.param_string)
 
         return self.tracecontroller.get_parameters()
@@ -72,6 +94,8 @@ class PiSpec:
         trace_length_us = self.params.num_points * (
             self.params.pulse_interval + self.params.pulse_length
         )
+
+        self._check_tc_connection()
 
         self.tracecontroller.flush_buffer()
 
@@ -98,10 +122,19 @@ class PiSpec:
         return status
 
     def get_data(self):
+        self._check_tc_connection()
+
         return self.datahandler.get_dataframe()
 
-    def power(self, power_state: bool):
-        if power_state:
-            return self.tracecontroller.switch_pulser_power(1)
-        else:
-            return self.tracecontroller.switch_pulser_power(0)
+    def power(self, switch_state) -> str:
+        """1/0, True/False, or "on"/"off" all work to change the LED power state"""
+
+        on_statements = (True, 1, "on", "ON")
+
+        output = 1 if switch_state in on_statements else 0
+
+        self._check_tc_connection()
+
+        self.tracecontroller.switch_pulser_power(output)
+
+        return output

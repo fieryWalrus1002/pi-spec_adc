@@ -17,7 +17,7 @@ import csv
 import serial
 from serial.serialutil import PARITY_NONE, STOPBITS_ONE
 import serial.tools.list_ports
-from tracecontroller import TraceController
+from src.tracecontroller import TraceController
 from src.experiment import Action, TraceParameters, Experiment, ExperimentHandler
 from threading import Thread, Event
 from datetime import datetime
