@@ -11,6 +11,7 @@ from src.datahandler import DataHandler
 from src.trace_utils import TraceParams
 from src.tracecontroller import TraceController
 
+
 # from src.tracecontroller import TraceController, TraceControllerDebug
 from datetime import datetime
 import time
@@ -26,9 +27,9 @@ class TestClass:
 
 class PiSpec:
     def __init__(self):
+        self.params = TraceParams()
         self.tracecontroller = TraceController()
         self.datahandler = DataHandler()
-        self.params = TraceParams()
         self._max_intensity = 255
 
     def wait(self, time_s: int):
@@ -39,12 +40,13 @@ class PiSpec:
             self.tracecontroller.connect_to_device()
             print("tc disconnected, reconnecting...")
 
-    def set_actinic(self, intensity: int):
+    def set_actinic_intensity(self, intensity: int):
         """set the current actinic intensit. not used during traces, but for in between
         traces and during pre-illumination
 
         params:
         intensity: 0-255 range of intensity, not currenbtly correlated to uE
+
         """
         if intensity >= 0 and intensity <= 255 and type(intensity) == int:
             cmd = str(f"a{intensity}")
@@ -52,7 +54,7 @@ class PiSpec:
             # print(f"set_actinic: {cmd}, resp: {resp}")
             return resp
         else:
-            return  f"Error: accepts only integer values 0-255, you input was {type(intensity)}"
+            return f"Error: accepts only integer values 0-255, you input was {type(intensity)}"
 
         # print(cmd, ", ", cmd_sent)
 
@@ -70,10 +72,26 @@ class PiSpec:
         exp_name: str
         """
         today = time.strftime("%y%m%d")
+
         dest_path = f"{os.getcwd()}/export/{today}_{exp_name}"
+
         if not os.path.exists(dest_path):
+            print(f"dest_path does not exist, creating {dest_path}")
             os.makedirs(dest_path)
+        else:
+            print(f"dest_path exists: {dest_path}")
+
         self.datahandler = DataHandler()
+        print("DataHandler created for these traces")
+
+        self.set_power_state(1)
+        print("setting power state")
+
+        return dest_path
+
+    def conclude_experiment(self):
+        self.set_power_state(0)
+        return f"Experiment concluded, trace data is ready for processing."
 
     def setup_trace(
         self,
@@ -89,7 +107,7 @@ class PiSpec:
 
         return self.tracecontroller.get_parameters()
 
-    def run_trace(self, rep: int = 0, note: str = "", timeout: int = 1000000) -> int:
+    def run_trace(self, rep: int = 0, note: str = "", timeout_s: float = 1.0) -> int:
 
         trace_length_us = self.params.num_points * (
             self.params.pulse_interval + self.params.pulse_length
@@ -105,9 +123,7 @@ class PiSpec:
 
         sleep_time = trace_length_us * 1e-6
         time.sleep(sleep_time)  # sleep until trace is done
-
-        status, str_buffer = self.tracecontroller.get_trace_data(timeout=timeout)
-
+        status, str_buffer = self.tracecontroller.get_trace_data(timeout_s=timeout_s)
         trace_end = time.time()
 
         self.datahandler.save_buffer(
@@ -126,15 +142,38 @@ class PiSpec:
 
         return self.datahandler.get_dataframe()
 
-    def power(self, switch_state) -> str:
-        """1/0, True/False, or "on"/"off" all work to change the LED power state"""
+    def set_actinic_state(self, switch_state: int) -> str:
+        """turn on and off the transistor gate controlling the variable output voltage
+        to actinic circuit"""
 
-        on_statements = (True, 1, "on", "ON")
+        output = 0 if switch_state <= 0 else 1
 
-        output = 1 if switch_state in on_statements else 0
-
-        self._check_tc_connection()
-
-        self.tracecontroller.switch_pulser_power(output)
+        self.tracecontroller.set_parameters(f"u{output}")
 
         return output
+
+    def set_power_state(self, switch_state: int) -> str:
+        """Turn on the power to the LEDs. If this is off, the LEDs will not have 12V
+        power and will not turn on.
+
+        Power state should be turned off when experiments are done, to prevent LED
+        burnout accidents.
+
+        switch_state: int. 0 to turn off the power switch, 1 to turn it on.
+        """
+        output = 0 if switch_state <= 0 else 1
+
+        # self.tracecontroller.set_parameters(f"k{output}")
+
+        return output
+
+    def test_meas_leds(self, pin_num):
+        """runs a pin pulse test for the given pin number. Repeats num_points times,
+        pulse is pulse_length us wide and interval is pulse_interval."""
+
+        self.set_power_state(1)
+
+        self.tracecontroller.set_parameters(f"c{pin_num}")
+        self.wait(2)
+
+        self.set_power_state(0)

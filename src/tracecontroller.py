@@ -6,15 +6,21 @@ from threading import Thread
 
 
 class TraceController:
-    def __init__(self, baud_rate: int = 115200, timeout: float = 1.0):
+    def __init__(
+        self, baud_rate: int = 115200, timeout_s: float = 1.0, params: str = "d0"
+    ):
         self.baud_rate = baud_rate
-        self.timeout = timeout
+        self.timeout_s = timeout_s
         self.device = self.get_device_port()
         self.ser = self.connect_to_device()
         self.data = []
         self.daemon = Thread(daemon=True, target=self.check_conn_status)
         self.daemon.start()
         self.max_intensity = 255  # limit on how high you can set the actinic, in 0-255
+        # self.set_parameters(params)
+
+    def _debug(self):
+        return self.set_parameters("o0")
 
     def check_conn_status(self, interval_sec: float = 0.25):
         while True:
@@ -24,15 +30,17 @@ class TraceController:
 
     def connect_to_device(self):
         ser = None
+        start_time = time.time()
 
         while ser is None:
             ser = serial.Serial(
                 port=self.device,
                 baudrate=self.baud_rate,
-                timeout=self.timeout,
-                write_timeout=self.timeout,
+                timeout=self.timeout_s,
+                write_timeout=self.timeout_s,
             )
-            time.sleep(0.2)
+            time.sleep(0.5)
+            print(f"waiting for serial... {(time.time() - start_time)/1000}")
 
         # print(f"connect_to_device() connecting to {self.device}")
         return ser
@@ -49,7 +57,7 @@ class TraceController:
         self.ser.flush()
         return True
 
-    def switch_pulser_power(self, power: bool, timeout: int = 10000) -> str:
+    def switch_pulser_power(self, power: bool, timeout: int) -> str:
 
         if power:
             self.set_parameters("q1")
@@ -71,11 +79,9 @@ class TraceController:
         """
 
         for port in serial.tools.list_ports.comports():
-
             if port.vid == int("16c0", 16):
                 device = port.device
                 logging.debug(device)
-
         return device
 
     def get_diagnostic_info(self):
@@ -83,71 +89,73 @@ class TraceController:
 
     def get_num_points(self):
         self.set_parameters("d0")
-        time.sleep(0.25)
-        recv = self.ser.readline()
-        return recv
+        return self.read_ser_buffer()
 
     def get_parameters(self):
         self.set_parameters("d0")
-        time.sleep(0.25)
-        params = self.ser.readline().decode("utf-8")
-        return params
+        return self.read_ser_buffer()
 
     def set_parameters(self, cmd_input: str = ""):
-        """ set a paramter as a string in the format: 
-            "[a-z][0-10000]"
+        """set a paramter as a string in the format:
+        "[a-z][0-10000]"
 
-            The serial command will be interpreted by the microcontroller as a command
-            corresponding to the lower-case letter used, and a value given after it. 
-            Commands are processed by a semicolon, which is included by this function.
-            """
+        The serial command will be interpreted by the microcontroller as a command
+        corresponding to the lower-case letter used, and a value given after it.
+        Commands are processed by a semicolon, which is included by this function.
+        """
         cmd_output = f"{cmd_input};"
-        self.ser.write(cmd_output.encode("utf-8"))
-        return cmd_output
 
-    def read_ser_buffer(self, timeout: int = 100000):
+        self.ser.write(cmd_output.encode("utf-8"))
+
+        return self.read_ser_buffer(timeout_s=2.0)
+
+    def read_ser_buffer(self, timeout_s: float = 1.0):
         """reads incoming bytes and converts to string"""
-        timeout_cnt = 0
-        recv = bytearray()
-        recv_state = True
+        timer = Timer(timeout_s)
         buffer = ""
 
-        while recv_state:
-            if self.ser.in_waiting > 0:
-                recv.extend(self.ser.read_all())
-                try:
-                    decoded = recv.decode()
-                except UnicodeDecodeError:
-                    logging.debug("unicode error")
-                    print("unicode error")
+        while timer.running:
+            resp = self.ser.read_until().decode("utf-8")
+            if resp != "":
+                buffer += resp
 
-                if len(decoded) > 1:
-                    buffer += decoded
-                    timeout_cnt = 0
-                    recv = bytearray()
+        return buffer
 
-            timeout_cnt += 1
-
-            if timeout_cnt > timeout:
-                if len(buffer) < 1000:
-                    # timeout with lack of data
-                    return 1, buffer
-                else:
-                    # timeout, but a good size buffer
-                    return 0, buffer
-
-        return 0, buffer
-
-    def get_trace_data(self, timeout: int = 10000):
+    def get_trace_data(self, timeout_s: float = 1.0):
         """
         sends retrieval command to tracecontroller, then reads the serial buffer
         and returns it as a string
         """
-        self.set_parameters("g0")
+        self.ser.write(b"g0;")
 
-        status, buffer = self.read_ser_buffer(timeout=timeout)
+        buffer = self.read_ser_buffer(timeout_s)
+
+        if len(buffer) < 100:
+            status = 1
+        else:
+            status = 0
 
         return status, buffer
+
+
+class Timer:
+    def __init__(self, timeout_s: float = 1.0):
+        self.start_time = time.time()
+        self.timeout_s = timeout_s
+
+    def restart(self):
+        self.start_time = time.time()
+
+    @property
+    def running(self):
+
+        time_elapsed = time.time() - self.start_time
+
+        if time_elapsed > self.timeout_s:
+            return False
+        else:
+            return True
+
 
 # class DummyData:
 #     """provides formatted lines of a previous datafile to mimic the ADC output"""

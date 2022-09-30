@@ -56,7 +56,7 @@ class PISPEC_APP:
     # this is the GUI
     def __init__(self, name):
         self.init_window_name = name
-        self.datalogger = DataLogger()
+        # self.datalogger = DataLogger()
         self.tracecontroller = TraceController()
         self.experimenthandler = ExperimentHandler(
             tracecontroller=self.tracecontroller, datalogger=self.datalogger, gui=self
@@ -413,7 +413,7 @@ def calibrate_trigger_delay(
     )  # set the tracecontroller to init calibration
 
     datalogger._send_command("g", 0)
-    data = tracecontroller.receive_data(timeout=2.0).strip(";")
+    data = tracecontroller.receive_data(timeout_s=2.0).strip(";")
     df = pd.read_table(StringIO(data), sep=",")
     df.columns = ["cnt", "time_us", "acq_time", "value"]
     idx = df[["value"]].idxmax()

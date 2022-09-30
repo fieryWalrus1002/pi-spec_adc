@@ -117,7 +117,7 @@ class Experiment():
         self.tracecontroller.set_parameters("m;")
         logging.debug("trace executed, waiting for data")
         # retrieve data from ADC, in list form
-        data = self.tracecontroller.receive_data(timeout=0.0001)
+        data = self.tracecontroller.receive_data(timeout_s=0.0001)
         
         logging.debug("data received")
         print(data)
@@ -132,13 +132,13 @@ class Experiment():
     def wait_for_response(self, device, timeout: float = 0.5):
         recv = ""
         while ";" not in recv:
-            recv = device.receive_data(timeout=timeout)
+            recv = device.receive_data(timeout_stimeout)
         return recv
         
     def save_data(self):
         logging.debug(f"save that data! found {len(self.data_list)} trace data to save")
     
-#         print(wait_for_response(device=self.tracecontroller, timeout=2.0))
+#         print(wait_for_response(device=self.tracecontroller, timeout_s2.0))
         logging.debug("retrieving data")
         self.tracecontroller._send_command("g", 0)
         data = self.tracecontroller.receive_data()

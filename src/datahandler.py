@@ -106,4 +106,6 @@ class DataHandler:
         dfs = [self.convert_tdata_to_df(tdata) for tdata in self.trace_buffers]
 
         return dfs
+    
+    
 
