@@ -137,10 +137,66 @@ class PiSpec:
 
         return status
 
-    def get_data(self):
-        self._check_tc_connection()
+    def get_dataframe_list(self):
+        """retrieves list of dataframes from data handler module"""
+        dfs = self.datahandler.get_dataframe_list()
 
-        return self.datahandler.get_dataframe()
+        # return [self.process_dataframe(df) for df in dfs]
+        return [df for df in dfs]
+
+    def _get_nm(self, param_string: str):
+        # import re
+
+        # resp = re.findall(pattern="v[0-9]", string=df.param_string[0])
+        # print(resp)
+        return 0
+
+    def process_dataframe(self, df):
+        """takes the raw dataframe and calculates a few neccessary variables before
+        returning it
+        """
+
+        # dA = (- deltaT/T)/2.3
+
+        df["nm"] = self._get_nm(df["param_string"])
+
+        # row means of all the data points
+        df["val"] = df[["aq_0", "aq_1", "aq_2", "aq_3", "aq_4"]].mean(
+            numeric_only=True, axis=1
+        )
+        df["zero_val"] = df[["paq_0", "paq_1", "paq_2"]].mean(numeric_only=True, axis=1)
+        df["V"] = (df["val"] - df["zero_val"]) * (12 / 65535)
+        df["time_ms"] = df["time_us"] / 1000
+
+        # prepulse_mean = df.iloc[350:400, -1].mean()
+        prepulse_mean = 1
+        df["dAbs"] = -(df["V"] / prepulse_mean) / 2.3
+
+        df.set_index("time_us", inplace=True)
+
+        return df
+
+    def actinic_test(self):
+
+        test = [x * 20 for x in range(4, 7)]
+
+        self.set_power_state(1)
+
+        for intensity in test:
+
+            self.set_actinic_intensity(intensity)
+            # pispec.set_power_state(1)
+            self.set_actinic_state(1)
+
+            self.wait(1)
+
+            self.set_actinic_state(0)
+            self.set_actinic_intensity(0)
+            # pispec.set_power_state(0)
+
+            self.wait(1)
+
+        self.set_power_state(0)
 
     def set_actinic_state(self, switch_state: int) -> str:
         """turn on and off the transistor gate controlling the variable output voltage
@@ -167,13 +223,21 @@ class PiSpec:
 
         return output
 
-    def test_meas_leds(self, pin_num):
-        """runs a pin pulse test for the given pin number. Repeats num_points times,
+    def meas_led_test(
+        self,
+        pins: list = [2, 3, 4, 5, 6, 7, 8, 9],
+        pulse_length: int = 75,
+        pulse_interval: int = 1000,
+    ):
+        """runs a pin pulse test for the list of given pin numbers. Repeats num_points times,
         pulse is pulse_length us wide and interval is pulse_interval."""
 
         self.set_power_state(1)
 
-        self.tracecontroller.set_parameters(f"c{pin_num}")
-        self.wait(2)
+        self.tracecontroller.set_parameters(f"i{pulse_interval};p{pulse_length}")
+
+        for pin in pins:
+            self.tracecontroller.set_parameters(f"c{pin}")
+            self.wait(2)
 
         self.set_power_state(0)

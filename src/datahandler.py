@@ -4,6 +4,7 @@ from pathlib import Path
 from src.trace_utils import TraceData
 import pandas as pd
 from io import StringIO
+import re
 
 
 class DataHandler:
@@ -22,6 +23,7 @@ class DataHandler:
         trace_end: float,
         rep: int,
     ):
+        """ " takes a decoded string buffer and appends it to a TraceData list"""
         self.trace_buffers.append(
             TraceData(
                 rep=rep,
@@ -34,78 +36,34 @@ class DataHandler:
             )
         )
 
-    def convert_tdata_to_df(self, tdata: TraceData) -> pd.DataFrame:
+    def get_dataframe_list(self):
+        """returns a list of dataframes converted from trace buffers"""
 
-        df = self.parse_buffer(tdata=tdata)
+        dfs = [self.parse_tdata(tdata=tdata) for tdata in self.trace_buffers]
 
-        return df
+        return dfs
 
-    def parse_buffer(self, tdata: TraceData) -> pd.DataFrame:
+    def parse_tdata(
+        self,
+        tdata: TraceData,
+    ) -> pd.DataFrame:
         """
         takes a tracedata string buffer of data from the tracecontroller and converts it to a
         dataframe, and adds the metadata for each point
+
+        data coming in from the buffer will look like:
+        0,0, 0, 0, 0, 9728, 9984, 9984, 9984, 9984, 9984\\r\\n
+        1,501, 0, 0, 0, 9728, 9984, 9984, 9984, 9984, 9984\\r\\n
+
         """
-        data_list = []
-        meta_cols, meta_vals = tdata.metadata
-        buffer = tdata.buffer.split("\r\n")
 
-        i = 0
-        j = 0
-        buf_len = len(buffer)
-        first_line = len(buffer)
-        last_line = 0
+        f = StringIO(tdata.buffer)
 
-        for i in range(0, buf_len):
-            len1 = len(buffer[i].split(","))
-            len2 = len(buffer[i + 1].split(","))
-            
-            if len1 == len2:
-                first_line = i
-                break           
+        df = pd.read_csv(f, header=None, names=tdata.col_names[0])
 
-        for i in range(0, buf_len):
-            len1 = len(buffer[buf_len - i - 1].split(","))
-            len2 = len(buffer[buf_len - i - 2].split(","))
-            
-            if len1 == len2:
-                last_line = i - 1
-                break          
-        
-        
-        
-        for i, line in enumerate(buffer[first_line:last_line]):
+        metadf = pd.DataFrame(tdata.asdict(), index=[i for i in range(0, df.shape[0])])
 
-            
-            spl_line = line.split(",")               
-
-            for i, item in enumerate(spl_line):
-                try: 
-                    spl_line[i] = float(item)
-                except:
-                    #mwahahahahahah
-                    pass
-
-            if len(spl_line) > 1:
-                data_list.append(meta_vals + spl_line)
-
-            
-               
-        num_cols = len(buffer[first_line].split(","))
-        
-        aq_cols = [f"aq_{x}" for x in range(0, num_cols - 2)]
-        
-        columns = meta_cols + ["pt_num", "time_us"] + aq_cols
-        
-        df = pd.DataFrame(data_list, columns=columns)
-        
+        df = pd.concat([metadf, df], axis=1)
 
         return df
-
-    def get_dataframe(self):
-    
-        dfs = [self.convert_tdata_to_df(tdata) for tdata in self.trace_buffers]
-
-        return dfs
-    
-    
-
+        # get trace data columns set up and join to dataframe

@@ -45,15 +45,27 @@ class TraceData:
     param_string: str
     note: str
     created: float = time.time()
+    col_names: list = [
+            "pt_num",
+            "time_us",
+            "paq_0",
+            "paq_1",
+            "paq_2",
+            "aq_0",
+            "aq_1",
+            "aq_2",
+            "aq_3",
+            "aq_4",
+            "aq_5",
+        ],
 
-    @property
-    def metadata(self):
-        """ return a tuple of two lists, one column names and one values to place in the
-            columns 
-        """
-        return (['trace_num',
-                 'rep', 'trace_begun', 'trace_end','param_string', 'note'], 
-                [self.trace_num, self.rep, self.trace_begun, self.trace_end, self.param_string, self.note])
-        
-    
+    def asdict(self) -> dict:
+        return {"rep" : self.rep,
+                "trace_num": self.trace_num,
+                "trace_begun": self.trace_begun,
+                "trace_end": self.trace_end,
+                "param_string": self.param_string,
+                "note": self.note,
+                "created": self.created
+        }
 
