@@ -76,16 +76,12 @@ class PiSpec:
         dest_path = f"{os.getcwd()}/export/{today}_{exp_name}"
 
         if not os.path.exists(dest_path):
-            print(f"dest_path does not exist, creating {dest_path}")
             os.makedirs(dest_path)
-        else:
-            print(f"dest_path exists: {dest_path}")
 
         self.datahandler = DataHandler()
-        print("DataHandler created for these traces")
+        self.datahandler.clear_buffer()
 
         self.set_power_state(1)
-        print("setting power state")
 
         return dest_path
 
@@ -99,13 +95,8 @@ class PiSpec:
     ):
         """setup the tracecontroller with provided trace parameters, and return
         the paramaters for verification"""
-        self.params = params
-
-        self._check_tc_connection()
-
-        self.tracecontroller.set_parameters(params.param_string)
-
-        return self.tracecontroller.get_parameters()
+        self.tracecontroller.set_parameters(self.params.param_string)
+        # return self.tracecontroller.get_parameters()
 
     def run_trace(self, rep: int = 0, note: str = "", timeout_s: float = 1.0) -> int:
 
@@ -113,18 +104,23 @@ class PiSpec:
             self.params.pulse_interval + self.params.pulse_length
         )
 
-        self._check_tc_connection()
+        # self._check_tc_connection()
 
-        self.tracecontroller.flush_buffer()
+        # self.tracecontroller.flush_buffer()
 
         trace_begun = time.time()
 
         self.tracecontroller.set_parameters("m0")
 
-        sleep_time = trace_length_us * 1e-6
-        time.sleep(sleep_time)  # sleep until trace is done
-        status, str_buffer = self.tracecontroller.get_trace_data(timeout_s=timeout_s)
+        time.sleep(trace_length_us / 1000000 * 1.5)
+
         trace_end = time.time()
+
+        self.save_buffer(trace_begun, trace_end, timeout_s, rep, note)
+
+    def save_buffer(self, trace_begun, trace_end, timeout_s, rep, note):
+
+        status, str_buffer = self.tracecontroller.get_trace_data(timeout_s=timeout_s)
 
         self.datahandler.save_buffer(
             rep=rep,
@@ -134,15 +130,14 @@ class PiSpec:
             trace_begun=trace_begun,
             trace_end=trace_end,
         )
-
         return status
 
     def get_dataframe_list(self):
         """retrieves list of dataframes from data handler module"""
-        dfs = self.datahandler.get_dataframe_list()
+        return self.datahandler.get_dataframe_list()
 
-        # return [self.process_dataframe(df) for df in dfs]
-        return [df for df in dfs]
+        # # return [self.process_dataframe(df) for df in dfs]
+        # return [df for df in dfs]
 
     def _get_nm(self, param_string: str):
         # import re

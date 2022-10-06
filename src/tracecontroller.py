@@ -4,6 +4,28 @@ import logging
 import time
 from threading import Thread
 
+param_dict: dict = {
+    "write_act_intensity": "a",
+    "get_params": "d",
+    "trigger_delay": "e",
+    "push_data": "g",
+    "pulse_interval": "i",
+    "detector_circuit": "j",
+    "power_12v": "k",
+    "execute_trace": "m",
+    "num_points": "n",
+    "pulse_length": "p",
+    "meas_led_ir": "r",
+    "sat_pulse_end": "s",
+    "sat_pulse_begin": "t",
+    "act_gate": "u",
+    "meas_led_vis": "v",
+    "act_phase_0": "w",
+    "act_phase_1": "x",
+    "act_phase_2": "y",
+    "pulse_mode": "z",
+}
+
 
 class TraceController:
     def __init__(
@@ -103,21 +125,25 @@ class TraceController:
         corresponding to the lower-case letter used, and a value given after it.
         Commands are processed by a semicolon, which is included by this function.
         """
-        cmd_output = f"{cmd_input};"
+        self.ser.write(f"{cmd_input};".encode("utf-8"))
 
-        self.ser.write(cmd_output.encode("utf-8"))
-
-        return self.read_ser_buffer(timeout_s=2.0)
+        # return self.read_ser_buffer(timeout_s=2.0)
 
     def read_ser_buffer(self, timeout_s: float = 1.0):
         """reads incoming bytes and converts to string"""
-        timer = Timer(timeout_s)
         buffer = ""
+        self.ser.write(b"g0;")
 
-        while timer.running:
+        timer = Timer(timeout_s)
+
+        while ";" not in buffer and timer.running:
             resp = self.ser.read_until().decode("utf-8")
+
             if resp != "":
                 buffer += resp
+        
+        
+
 
         return buffer
 
@@ -126,8 +152,6 @@ class TraceController:
         sends retrieval command to tracecontroller, then reads the serial buffer
         and returns it as a string
         """
-        self.ser.write(b"g0;")
-
         buffer = self.read_ser_buffer(timeout_s)
 
         if len(buffer) < 100:

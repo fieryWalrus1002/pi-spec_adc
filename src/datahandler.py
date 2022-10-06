@@ -14,6 +14,9 @@ class DataHandler:
         self.trace_buffers = []
         self.created = time.time()
 
+    def clear_buffer(self):
+        self.trace_buffers = []
+
     def save_buffer(
         self,
         buffer: str,
