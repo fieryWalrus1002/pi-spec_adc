@@ -137,13 +137,10 @@ class TraceController:
         timer = Timer(timeout_s)
 
         while ";" not in buffer and timer.running:
-            resp = self.ser.read_until().decode("utf-8")
+            resp = self.ser.read_all().decode("utf-8")
 
             if resp != "":
                 buffer += resp
-        
-        
-
 
         return buffer
 
