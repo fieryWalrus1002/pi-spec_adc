@@ -10,7 +10,8 @@ from dataclasses import dataclass
 from src.datahandler import DataHandler
 from src.trace_utils import TraceParams
 from src.tracecontroller import TraceController
-
+from src.drive import DataUploader
+import matplotlib.pyplot as plt
 
 # from src.tracecontroller import TraceController, TraceControllerDebug
 from datetime import datetime
@@ -43,6 +44,8 @@ class PiSpec:
             "940": 7,
         }
         self.nm_strs = [i for i in self.wavelength_dict]
+        # self.img_export_path = "img_export"
+        self.dest_path = 'export'
 
     def wait(self, time_s: int):
         time.sleep(time_s)
@@ -85,17 +88,17 @@ class PiSpec:
         """
         today = time.strftime("%y%m%d")
 
-        dest_path = f"{os.getcwd()}/export/{today}_{exp_name}"
+        self.dest_path =f"{os.getcwd()}/export/{today}_{exp_name}"
 
-        if not os.path.exists(dest_path):
-            os.makedirs(dest_path)
+        if not os.path.exists(self.dest_path):
+            os.makedirs(self.dest_path)
 
         self.datahandler = DataHandler()
         self.datahandler.clear_buffer()
 
         self.set_power_state(1)
 
-        return dest_path
+        return self.dest_path
 
     def conclude_experiment(self):
         self.set_power_state(0)
@@ -105,10 +108,7 @@ class PiSpec:
         self,
         params: TraceParams(),
     ):
-        """setup the tracecontroller with provided trace parameters, and return
-        the paramaters for verification"""
-        self.params = params
-        self.tracecontroller.set_parameters(self.params.param_string)
+        return self.params.param_string
         # return self.tracecontroller.get_parameters()
 
     def run_trace(self, rep: int = 0, note: str = "", timeout_s: float = 1.0) -> int:
@@ -267,5 +267,32 @@ class PiSpec:
 
         self.conclude_experiment()
 
+    def save_df(self, df: pd.DataFrame, filepath: str = None):
+        dest_path = filepath if filepath != None else self.dest_path
+        return self.datahandler.save_df(df, dest_path)
+
+
     def get_df(self):
         return self.datahandler.get_df()
+
+    def plot_df(self, df, nm, col, upload: bool == False):
+        """ helper function to create a plot and save it to disk/ upload to gdrive """
+        filename = f'{self.dest_path}/{datetime.now().strftime("%y%m%d_%H%M")}_{nm}nm_{col}.png'
+        x = df.loc[df["nm"] == nm]['time_ms']
+        y = df.loc[df["nm"] == nm][col]
+
+        df.plot(x=x,y=y,kind='scatter',
+                c='cornflowerblue',
+                title=f"{nm}nm {col} vs time_ms",
+                ylabel=f"{col}",
+                xlabel="time (ms)",
+                s=10)
+
+        
+
+        plt.savefig(filename)
+        
+        if upload:
+            self.datahandler.upload(filename)
+
+        plt.show()

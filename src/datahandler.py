@@ -1,4 +1,5 @@
 import csv
+import os
 import time
 from pathlib import Path
 from src.trace_utils import TraceData
@@ -6,6 +7,8 @@ import pandas as pd
 from io import StringIO
 import re
 import numpy as np
+from src.drive import DataUploader
+from datetime import datetime
 
 
 class DataHandler:
@@ -25,6 +28,8 @@ class DataHandler:
             "940": 7,
         }
         self.nm_strs = [i for i in self.wavelength_dict]
+        self.uploader = DataUploader()
+        self.debug_list = []
 
     def clear_buffer(self):
         self.trace_buffers = []
@@ -51,6 +56,16 @@ class DataHandler:
             )
         )
 
+    def save_df(self, df, dest_path):
+        # /home/pi/projects/pi-spec-cli/export/221014_4layerKimwipe
+
+        exp_name = "_".join(dest_path.split("/")[-1].split("_")[1:])
+        filename = (
+            f'{dest_path}/{datetime.now().strftime("%y%m%d_%H%M")}_{exp_name}.csv'
+        )
+        df.to_csv(filename)
+        self.upload(f"{filename}")
+
     def calc_d_abs(self, df):
         """calculates delta A, or delta absorbance
         deltaT = the change in transmission over the course of the trace in voltage terms
@@ -74,7 +89,9 @@ class DataHandler:
         return -(df["V"] / prepulse_mean) / 2.3
 
     def get_meas_vis_num(self, df):
-        return int(re.search("v[0-9]{1,2}", df.loc[5, "param_string"]).group()[1:])
+        nm = re.search("v[0-9]{1,2}", df.loc[5, "param_string"]).group()[1:]
+        self.debug_list.append(f"nm={nm}")
+        return int(nm)
 
     def get_meas_ir_num(self, df):
         return int(re.search("r[0-9]{1,2}", df.loc[5, "param_string"]).group()[1:])
@@ -171,3 +188,6 @@ class DataHandler:
             df = pd.concat((df, d))
 
         return df
+
+    def upload(self, file):
+        self.uploader.upload(file)
