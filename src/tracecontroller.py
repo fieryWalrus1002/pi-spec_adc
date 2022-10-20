@@ -129,10 +129,12 @@ class TraceController:
 
         # return self.read_ser_buffer(timeout_s=2.0)
 
-    def read_ser_buffer(self, timeout_s: float = 1.0):
+    def read_ser_buffer(self, timeout_s: float = 1.0, get_data: bool = False):
         """reads incoming bytes and converts to string"""
         buffer = ""
-        self.ser.write(b"g0;")
+        
+        if get_data:
+            self.ser.write(b"g0;")
 
         timer = Timer(timeout_s)
 
@@ -149,7 +151,8 @@ class TraceController:
         sends retrieval command to tracecontroller, then reads the serial buffer
         and returns it as a string
         """
-        buffer = self.read_ser_buffer(timeout_s)
+
+        buffer = self.read_ser_buffer(timeout_s, get_data=True)
 
         if len(buffer) < 100:
             status = 1

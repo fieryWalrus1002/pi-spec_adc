@@ -93,6 +93,7 @@ class PiSpec:
         if not os.path.exists(self.dest_path):
             os.makedirs(self.dest_path)
 
+        print(f"os.path.exists: {self.dest_path}, {os.path.exists(self.dest_path)}")
         self.datahandler = DataHandler()
         self.datahandler.clear_buffer()
 
@@ -108,8 +109,10 @@ class PiSpec:
         self,
         params: TraceParams(),
     ):
-        return self.params.param_string
-        # return self.tracecontroller.get_parameters()
+        """ set self.params to the given parameters, and then send the parameter string to the trace controller """
+        self.params = params
+        self.tracecontroller.set_parameters(self.params.param_string)
+        return self.tracecontroller.get_parameters()
 
     def run_trace(self, rep: int = 0, note: str = "", timeout_s: float = 1.0) -> int:
 
@@ -239,7 +242,7 @@ class PiSpec:
         wavelengths list run once."""
 
         print(f"running experiment with the following wavelengths: {wavelengths}")
-
+        nm_wl = self.get_meas_led_numbers(wavelengths)
         trace_params = [
             TraceParams(
                 num_points=1000,
@@ -254,14 +257,14 @@ class PiSpec:
                 trace_note=exp_name,
                 act_intensity=act_phase_vals,
             )
-            for x in self.get_meas_led_numbers(wavelengths)
+            for x in nm_wl
         ]
 
         dest_path = self.init_experiment(exp_name=exp_name)
-
-        for i, param in enumerate(trace_params):
-            self.setup_trace(param)
-            print(param.param_string)
+        print(f"runtrace says dest path is : {dest_path}")
+        for param in trace_params:
+            device_params = self.setup_trace(param)
+            print(device_params)
             self.wait(btwn_trace_delay)
             self.run_trace(timeout_s=2.5)
 
@@ -269,6 +272,7 @@ class PiSpec:
 
     def save_df(self, df: pd.DataFrame, filepath: str = None):
         dest_path = filepath if filepath != None else self.dest_path
+        print(f'saving to {self.dest_path}')
         return self.datahandler.save_df(df, dest_path)
 
 
@@ -278,21 +282,15 @@ class PiSpec:
     def plot_df(self, df, nm, col, upload: bool == False):
         """ helper function to create a plot and save it to disk/ upload to gdrive """
         filename = f'{self.dest_path}/{datetime.now().strftime("%y%m%d_%H%M")}_{nm}nm_{col}.png'
-        x = df.loc[df["nm"] == nm]['time_ms']
-        y = df.loc[df["nm"] == nm][col]
-
-        df.plot(x=x,y=y,kind='scatter',
-                c='cornflowerblue',
-                title=f"{nm}nm {col} vs time_ms",
-                ylabel=f"{col}",
-                xlabel="time (ms)",
-                s=10)
-
-        
+        subdf = df.loc[df['nm'] == nm]
+        subdf.plot(x='time_ms',y=col,kind='scatter',
+                    c='cornflowerblue',
+                    title=f"{nm}nm {col} vs time_ms",
+                    ylabel=f"{col}",
+                    xlabel="time (ms)",
+                    s=10)
 
         plt.savefig(filename)
-        
+
         if upload:
             self.datahandler.upload(filename)
-
-        plt.show()

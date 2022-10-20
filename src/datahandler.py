@@ -17,8 +17,8 @@ class DataHandler:
     def __init__(self):
         self.trace_buffers = []
         self.created = time.time()
-        self.wavelength_dict = {
-            "none": 0,
+        self.nm_str_dict = {
+            "0": 0,
             "520": 1,
             "545": 2,
             "554": 3,
@@ -27,7 +27,7 @@ class DataHandler:
             "830": 6,
             "940": 7,
         }
-        self.nm_strs = [i for i in self.wavelength_dict]
+        self.nm_num_dict = {value:key for key, value in self.nm_str_dict.items()}
         self.uploader = DataUploader()
         self.debug_list = []
 
@@ -65,6 +65,7 @@ class DataHandler:
         )
         df.to_csv(filename)
         self.upload(f"{filename}")
+        return filename
 
     def calc_d_abs(self, df):
         """calculates delta A, or delta absorbance
@@ -90,7 +91,6 @@ class DataHandler:
 
     def get_meas_vis_num(self, df):
         nm = re.search("v[0-9]{1,2}", df.loc[5, "param_string"]).group()[1:]
-        self.debug_list.append(f"nm={nm}")
         return int(nm)
 
     def get_meas_ir_num(self, df):
@@ -105,7 +105,7 @@ class DataHandler:
         df["raw_diff"] = df["val"] - df["zero_val"]
         df["V"] = df["raw_diff"] * (12 / 65535)
         df["time_ms"] = df["time_us"] / 1000
-        df["nm"] = self.nm_strs[self.get_meas_vis_num(df)]
+        df["nm"] = self.nm_num_dict[self.get_meas_vis_num(df)]
         df["d_abs"] = self.calc_d_abs(df)
 
         return df
@@ -191,3 +191,8 @@ class DataHandler:
 
     def upload(self, file):
         self.uploader.upload(file)
+
+
+if __name__ == "__main__":
+    dh = DataHandler()
+
