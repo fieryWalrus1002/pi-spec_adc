@@ -151,16 +151,9 @@ class TraceController:
         sends retrieval command to tracecontroller, then reads the serial buffer
         and returns it as a string
         """
+        return self.read_ser_buffer(timeout_s, get_data=True)
 
-        buffer = self.read_ser_buffer(timeout_s, get_data=True)
-
-        if len(buffer) < 100:
-            status = 1
-        else:
-            status = 0
-
-        return status, buffer
-
+    
 
 class Timer:
     def __init__(self, timeout_s: float = 1.0):

@@ -27,12 +27,28 @@ class DataHandler:
             "830": 6,
             "940": 7,
         }
-        self.nm_num_dict = {value:key for key, value in self.nm_str_dict.items()}
+        self.nm_num_dict = {value: key for key, value in self.nm_str_dict.items()}
         self.uploader = DataUploader()
         self.debug_list = []
 
     def clear_buffer(self):
         self.trace_buffers = []
+
+    def _column_names_from_buffer(self, buffer: str) -> list:
+        """gets the appropriate columnns names from buffer"""
+        num_variables = len(buffer.split("\r\n")[0].split(",")) - 2
+        # #print(f"num_variables: {num_variables}")
+
+        column_names = (
+            ["pt_num", "time_us"]
+            + [f"z_{i}" for i in range(0, num_variables // 3)]
+            + [f"p_{i}" for i in range(0, num_variables - (num_variables // 3))]
+        )
+
+        # #print(f"in _column_names_from_buffer: {type(column_names)}")
+        # #print("returning ", column_names, "length ", len(column_names))
+
+        return column_names
 
     def save_buffer(
         self,
@@ -44,27 +60,31 @@ class DataHandler:
         rep: int,
     ):
         """ " takes a decoded string buffer and appends it to a TraceData list"""
-        self.trace_buffers.append(
-            TraceData(
-                rep=rep,
-                buffer=buffer,
-                trace_num=len(self.trace_buffers),
-                trace_begun=trace_begun,
-                trace_end=trace_end,
-                param_string=param_string,
-                note=note,
-            )
+        trace_index = len(self.trace_buffers)
+
+        new_trace_data = TraceData(
+            rep=rep,
+            buffer=buffer,
+            trace_num=trace_index,
+            trace_begun=trace_begun,
+            trace_end=trace_end,
+            param_string=param_string,
+            note=note,
         )
 
-    def save_df(self, df, dest_path):
-        # /home/pi/projects/pi-spec-cli/export/221014_4layerKimwipe
+        self.trace_buffers.append(new_trace_data)
 
-        exp_name = "_".join(dest_path.split("/")[-1].split("_")[1:])
+    def save_df(self, df, filepath, upload: bool = False) -> str:
+
+        exp_name = "_".join(filepath.split("/")[-1].split("_")[1:])
+
         filename = (
-            f'{dest_path}/{datetime.now().strftime("%y%m%d_%H%M")}_{exp_name}.csv'
+            f'{filepath}/{datetime.now().strftime("%y%m%d_%H%M")}_{exp_name}.csv'
         )
         df.to_csv(filename)
-        self.upload(f"{filename}")
+
+        if upload:
+            self.upload(f"{filename}")
         return filename
 
     def calc_d_abs(self, df):
@@ -96,55 +116,42 @@ class DataHandler:
     def get_meas_ir_num(self, df):
         return int(re.search("r[0-9]{1,2}", df.loc[5, "param_string"]).group()[1:])
 
-    def process_df(self, df):
-        # self.correct_v_shift(df)
-        df["val"] = df[["aq_0", "aq_1", "aq_2", "aq_3", "aq_4"]].mean(
-            numeric_only=True, axis=1
-        )
-        df["zero_val"] = df[["paq_0", "paq_1", "paq_2"]].mean(numeric_only=True, axis=1)
-        df["raw_diff"] = df["val"] - df["zero_val"]
-        df["V"] = df["raw_diff"] * (12 / 65535)
+    def param_from_string(self, param: str, param_string: str) -> int:
+        pattern = rf"(?<={param}=)[0-9]+"
+        return int(re.search(pattern, param_string).group())
+
+    def aq_nums(self, param_string: str) -> list:
+        """returns two lists of the pre acquisition and acquisition labels for columns in the dataset"""
+        return [
+            f"paq_{i}"
+            for i in range(0, self.param_from_string("numPreAq", param_string))
+        ], [f"aq_{i}" for i in range(0, self.param_from_string("numAq", param_string))]
+
+    def get_df(self):
+        """return a processed dataframe"""
+
+        return pd.concat([self.process_df(tdata) for tdata in self.trace_buffers])
+
+    def process_df(self, tdata):
+        df = self.parse_tdata(tdata=tdata)
+        new_names = [name for name in df.columns[0:7]]
+
+        df.columns = new_names + self._column_names_from_buffer(tdata.buffer)
+        #print("renamed ", df.columns)
+
+        if df["param_string"][0] == None:
+            return None
+
+
+        # paq_num, aq_num = self.aq_nums(df["param_string"][0])
+        # #print(paq_num, aq_num)
+        # df["val"] = df[aq_num].mean(numeric_only=True, axis=1)
+        # df["zero_val"] = df[paq_num].mean(numeric_only=True, axis=1)
+        # df["raw_diff"] = df["val"] - df["zero_val"]
+        # df["V"] = df["raw_diff"] * (12 / 65535)
         df["time_ms"] = df["time_us"] / 1000
         df["nm"] = self.nm_num_dict[self.get_meas_vis_num(df)]
-        df["d_abs"] = self.calc_d_abs(df)
-
-        return df
-
-    def correct_v_shift(self, df):
-        sat_pulse_begin = int(
-            re.search("s[0-9]{1,4}", df.loc[0, "param_string"]).group()[1:]
-        )
-        sat_pulse_end = int(
-            re.search("t[0-9]{1,4}", df.loc[0, "param_string"]).group()[1:]
-        )
-        print(f"begin, end: {sat_pulse_begin},{sat_pulse_end}")
-        phase0 = np.mean(
-            df.loc[0:sat_pulse_begin, ["paq_0", "paq_1", "paq_2"]].mean(
-                numeric_only=True, axis=1
-            )
-        )
-        phase1 = np.mean(
-            df.loc[sat_pulse_begin:sat_pulse_end, ["paq_0", "paq_1", "paq_2"]].mean(
-                numeric_only=True, axis=1
-            )
-        )
-        phase2 = np.mean(
-            df.loc[sat_pulse_end:, ["paq_0", "paq_1", "paq_2"]].mean(
-                numeric_only=True, axis=1
-            )
-        )
-        print(
-            f"phase differences {phase0 - phase0},{phase1 - phase0},{phase2 - phase0}"
-        )
-        df.loc[
-            sat_pulse_end:,
-            ["paq_0", "paq_1", "paq_2", "aq_0", "aq_1", "aq_2", "aq_3", "aq_4"],
-        ] = df.loc[
-            sat_pulse_end:,
-            ["paq_0", "paq_1", "paq_2", "aq_0", "aq_1", "aq_2", "aq_3", "aq_4"],
-        ] - (
-            phase2 - phase0
-        )
+        # df["d_abs"] = self.calc_d_abs(df)
 
         return df
 
@@ -164,28 +171,11 @@ class DataHandler:
 
         f = StringIO(tdata.buffer)
 
-        df = pd.read_csv(f, header=None, names=tdata.col_names[0])
+        df = pd.read_csv(f, header=None)
 
         metadf = pd.DataFrame(tdata.asdict(), index=[i for i in range(0, df.shape[0])])
 
         df = pd.concat([metadf, df], axis=1)
-
-        return df
-        # get trace data columns set up and join to dataframe
-
-    def get_df(self):
-        """get processed experiment dataframe"""
-
-        dfs = [
-            self.process_df(self.parse_tdata(tdata=tdata))
-            for tdata in self.trace_buffers
-        ]
-
-        col_names = dfs[0].columns
-        df = pd.DataFrame(columns=col_names)
-
-        for d in dfs:
-            df = pd.concat((df, d))
 
         return df
 
@@ -195,4 +185,3 @@ class DataHandler:
 
 if __name__ == "__main__":
     dh = DataHandler()
-

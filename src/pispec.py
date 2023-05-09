@@ -45,7 +45,7 @@ class PiSpec:
         }
         self.nm_strs = [i for i in self.wavelength_dict]
         # self.img_export_path = "img_export"
-        self.dest_path = 'export'
+        self.dest_path = "export"
 
     def wait(self, time_s: int):
         time.sleep(time_s)
@@ -88,7 +88,7 @@ class PiSpec:
         """
         today = time.strftime("%y%m%d")
 
-        self.dest_path =f"{os.getcwd()}/export/{today}_{exp_name}"
+        self.dest_path = f"{os.getcwd()}/export/{today}_{exp_name}"
 
         if not os.path.exists(self.dest_path):
             os.makedirs(self.dest_path)
@@ -109,36 +109,10 @@ class PiSpec:
         self,
         params: TraceParams(),
     ):
-        """ set self.params to the given parameters, and then send the parameter string to the trace controller """
+        """set self.params to the given parameters, and then send the parameter string to the trace controller"""
         self.params = params
         self.tracecontroller.set_parameters(self.params.param_string)
         return self.tracecontroller.get_parameters()
-
-    def run_trace(self, rep: int = 0, note: str = "", timeout_s: float = 1.0) -> int:
-
-        trace_length_us = self.params.num_points * (
-            self.params.pulse_interval + self.params.pulse_length
-        )
-
-        trace_begun = time.time()
-
-        self.tracecontroller.set_parameters("m0")
-
-        time.sleep(trace_length_us / 1000000 * 1.5)
-
-        trace_end = time.time()
-
-        exit_code, str_buffer = self.tracecontroller.get_trace_data(timeout_s=timeout_s)
-
-        self.datahandler.save_buffer(
-            rep=rep,
-            buffer=str_buffer,
-            note=note,
-            param_string=self.params.param_string,
-            trace_begun=trace_begun,
-            trace_end=trace_end,
-        )
-        return exit_code
 
     # def process_dataframe(self, df):
     #     """takes the raw dataframe and calculates a few neccessary variables before
@@ -234,18 +208,23 @@ class PiSpec:
     def run_experiment(
         self,
         exp_name: str = "test",
-        wavelengths: list = ["520"],
+        wavelengths: list = ["830"],
+        num_points: int = 1000,
         act_phase_vals: list = [0, 200, 0],
-        btwn_trace_delay: int = 2
+        btwn_trace_delay: int = 2,
     ):
         """This function runs a basic experiment, with each wavelength listed in the
         wavelengths list run once."""
+        str_buffers = []
+        log_output = [
+            f"running experiment with the following wavelengths: {wavelengths}"
+        ]
 
-        print(f"running experiment with the following wavelengths: {wavelengths}")
-        nm_wl = self.get_meas_led_numbers(wavelengths)
+        nm_wl = [self.wavelength_dict[wl] for wl in wavelengths]
+
         trace_params = [
             TraceParams(
-                num_points=1000,
+                num_points=num_points,
                 pulse_interval=1000,
                 meas_led_ir=0,
                 meas_led_vis=x,
@@ -261,34 +240,65 @@ class PiSpec:
         ]
 
         dest_path = self.init_experiment(exp_name=exp_name)
-        print(f"runtrace says dest path is : {dest_path}")
-        for param in trace_params:
+        log_output.append(f"runtrace says dest path is : {dest_path}")
+
+        for i, param in enumerate(trace_params):
             device_params = self.setup_trace(param)
-            print(device_params)
+            log_output.append(f"{i}:{device_params}")
             self.wait(btwn_trace_delay)
-            self.run_trace(timeout_s=2.5)
+            exit_code = self.run_trace(timeout_s=2.5)
 
         self.conclude_experiment()
 
+        return [f"exit_code: {exit_code}"] + log_output
+
+    def run_trace(self, rep: int = 0, note: str = "", timeout_s: float = 1.0):
+
+        trace_length_us = self.params.num_points * (
+            self.params.pulse_interval + self.params.pulse_length
+        )
+
+        trace_begun = time.time()
+
+        self.tracecontroller.set_parameters("m0")
+
+        time.sleep(trace_length_us / 1000000 * 1.5)
+
+        trace_end = time.time()
+
+        str_buffer = self.tracecontroller.get_trace_data(timeout_s=timeout_s)
+
+        self.datahandler.save_buffer(
+            rep=rep,
+            buffer=str_buffer,
+            note=note,
+            param_string=self.params.param_string,
+            trace_begun=trace_begun,
+            trace_end=trace_end,
+        )
+
     def save_df(self, df: pd.DataFrame, filepath: str = None):
         dest_path = filepath if filepath != None else self.dest_path
-        print(f'saving to {self.dest_path}')
         return self.datahandler.save_df(df, dest_path)
-
 
     def get_df(self):
         return self.datahandler.get_df()
 
-    def plot_df(self, df, nm, col, upload: bool == False):
-        """ helper function to create a plot and save it to disk/ upload to gdrive """
+    def plot_df(self, df, nm, col, upload: bool == False, title: str = ""):
+        """helper function to create a plot and save it to disk/ upload to gdrive"""
         filename = f'{self.dest_path}/{datetime.now().strftime("%y%m%d_%H%M")}_{nm}nm_{col}.png'
-        subdf = df.loc[df['nm'] == nm]
-        subdf.plot(x='time_ms',y=col,kind='scatter',
-                    c='cornflowerblue',
-                    title=f"{nm}nm {col} vs time_ms",
-                    ylabel=f"{col}",
-                    xlabel="time (ms)",
-                    s=10)
+        subdf = df.loc[df["nm"] == nm]
+        subdf.plot(
+            x="time_ms",
+            y=col,
+            kind="scatter",
+            c="cornflowerblue",
+            title=f"{nm}nm {col} vs time_ms",
+            suptitle=f"{title}",
+            ylabel=f"{col}",
+            xlabel="time (ms)",
+            s=10,
+        )
 
         plt.savefig(filename)
 

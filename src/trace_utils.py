@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 import time
 
+
 @dataclass
 class TraceParams:
     num_points: int = 1000
@@ -62,21 +63,6 @@ class TraceData:
     param_string: str
     note: str
     created: float = time.time()
-    col_names: list = (
-        [
-            "pt_num",
-            "time_us",
-            "paq_0",
-            "paq_1",
-            "paq_2",
-            "aq_0",
-            "aq_1",
-            "aq_2",
-            "aq_3",
-            "aq_4",
-            "aq_5",
-        ],
-    )
 
     def asdict(self) -> dict:
         return {
