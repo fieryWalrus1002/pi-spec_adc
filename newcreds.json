@@ -1,0 +1,13 @@
+{
+    "installed": {
+        "client_id": "203113844901-b792cuk82i9laamunrapgul5mnalit05.apps.googleusercontent.com",
+        "project_id": "pispecdata",
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        "client_secret": "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",
+        "redirect_uris": [
+            "http://localhost"
+        ]
+    }
+}
